@@ -152,14 +152,16 @@ double lt_get_number(lt_Value v) {
 static void _lt_tokenize_error(lt_VM *vm, const char *module, uint16_t line,
                                uint16_t col, const char *message) {
   char sprint_buf[128];
-  snprintf(sprint_buf, 128, "%s|%d:%d: %s", module, line, col, message);
+  snprintf(sprint_buf, 128, "(tokenize error) %s|%d:%d: %s", module, line, col,
+           message);
   lt_error(vm, sprint_buf);
 }
 
 static void _lt_parse_error(lt_VM *vm, const char *module, lt_Token *t,
                             const char *message) {
   char sprint_buf[128];
-  snprintf(sprint_buf, 128, "%s|%d:%d: %s", module, t->line, t->col, message);
+  snprintf(sprint_buf, 128, "(parse error) %s|%d:%d: %s", module, t->line,
+           t->col, message);
   lt_error(vm, sprint_buf);
 }
 
@@ -1200,7 +1202,8 @@ lt_Token *_lt_parse_expression(lt_VM *vm, lt_Parser *p, lt_Token *start,
         key->u.literal.token = NEXT();
 
         if (current->type != LT_TOKEN_COLON)
-          lt_error(vm, "Expected colon to follow table index!");
+          _lt_parse_error(vm, p->tkn->module, current,
+                          "Expected colon to follow table index!");
         NEXT(); // eat colon
 
         lt_AstNode *value =
