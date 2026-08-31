@@ -88,7 +88,7 @@ lt_Buffer lt_buffer_new(uint32_t element_size) {
 }
 
 void lt_buffer_destroy(lt_VM *vm, lt_Buffer *buf) {
-  if (buf->data != 0)
+  if (buf->data != NULL)
     vm->free(buf->data);
   buf->data = 0;
   buf->length = 0;
@@ -2263,6 +2263,8 @@ lt_Value lt_compile(lt_VM *vm, lt_Parser *p) {
 }
 
 void lt_free_scope(lt_VM *vm, lt_Scope *scope) {
+  if (scope == NULL)
+    return;
   lt_buffer_destroy(vm, &scope->locals);
   lt_buffer_destroy(vm, &scope->upvals);
 }
