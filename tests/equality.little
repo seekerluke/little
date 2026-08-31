@@ -1,0 +1,18 @@
+test.assert(null is null)
+test.assert(null isnt true)
+test.assert(null isnt false)
+
+test.assert(42 is 42)
+test.assert(0 is 0)
+test.assert(-1 is -1)
+test.assert(3.14 is 3.14)
+
+test.assert(true is true)
+test.assert(false is false)
+test.assert(true isnt false)
+test.assert(false isnt true)
+
+test.assert("hello" is "hello")
+test.assert("hello" isnt "world")
+test.assert("" is "")
+test.assert("a" isnt "b")

@@ -1,0 +1,81 @@
+var body_ran
+
+body_ran = false
+if 0 {
+  body_ran = true
+}
+test.assert(body_ran)
+
+body_ran = false
+if "" {
+  body_ran = true
+}
+test.assert(body_ran)
+
+body_ran = false
+if [] {
+  body_ran = true
+}
+test.assert(body_ran)
+
+body_ran = false
+var t = {}
+if t {
+  body_ran = true
+}
+test.assert(body_ran)
+
+body_ran = false
+if 1 {
+  body_ran = true
+}
+test.assert(body_ran)
+
+body_ran = false
+if -1 {
+  body_ran = true
+}
+test.assert(body_ran)
+
+body_ran = false
+if "hello" {
+  body_ran = true
+}
+test.assert(body_ran)
+
+body_ran = false
+var a = [ 1 ]
+if a {
+  body_ran = true
+}
+test.assert(body_ran)
+
+body_ran = false
+if true {
+  body_ran = true
+}
+test.assert(body_ran)
+
+body_ran = false
+if false {
+  body_ran = true
+}
+test.assert(not body_ran)
+
+body_ran = false
+if null {
+  body_ran = true
+}
+test.assert(not body_ran)
+
+body_ran = false
+if not false {
+  body_ran = true
+}
+test.assert(body_ran)
+
+body_ran = false
+if not null {
+  body_ran = true
+}
+test.assert(body_ran)

@@ -1,0 +1,11 @@
+var collected = gc.collect()
+test.assert(collected >= 0)
+
+var arr = [ 1, 2, 3 ]
+#var tab = { x: 100 y: 200 }
+var added = [ 10, 20, 30 ]
+
+gc.addroot(added)
+var c2 = gc.collect()
+gc.removeroot(added)
+test.assert(c2 is 2)

@@ -1,0 +1,17 @@
+test.assert(string.len("hello") is 5)
+test.assert(string.len("") is 0)
+
+var a = string.sub("hello", 0, 3)
+test.assert(a is "hel")
+var b = string.sub("hello", 3)
+test.assert(b is "lo")
+
+var h = string.concat("hello", " ", "world")
+test.assert(h is "hello world")
+
+var str_format = string.format("hello %s", "world")
+var int_format = string.format("hello %d", 10)
+var dbl_format = string.format("hello %f", 2.5)
+test.assert(str_format is "hello world")
+test.assert(int_format is "hello 10")
+test.assert(dbl_format is "hello 2.500000")

@@ -1,0 +1,7 @@
+io.print("print test")
+
+var t = io.clock()
+test.assert(t > 0)
+
+var t2 = io.clock()
+test.assert(t2 >= t)

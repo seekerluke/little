@@ -1,0 +1,25 @@
+var counter = fn() {
+  var n = 0
+  return fn() {
+    n = n + 1
+    return n
+  }
+}
+
+var c = counter()
+test.assert(c() is 1)
+test.assert(c() is 2)
+test.assert(c() is 3)
+
+var make_accum = fn(start) {
+  var total = start
+  return fn(amount) {
+    total = total + amount
+    return total
+  }
+}
+
+var acc = make_accum(100)
+test.assert(acc(10) is 110)
+test.assert(acc(20) is 130)
+test.assert(acc(50) is 180)

@@ -13,7 +13,6 @@ extern "C" {
 
 namespace fs = std::filesystem;
 
-// set had_error on callback, lt_dostring does not return anything on error
 static bool had_error = false;
 static std::string error_msg;
 
@@ -21,11 +20,65 @@ static void error(lt_VM *vm, const char *msg) {
   (void)vm;
   had_error = true;
   error_msg = msg;
+  printf("test error: %s\n", msg);
+}
+
+static uint8_t test_assert(lt_VM *vm, uint8_t argc) {
+  if (argc < 1) {
+    lt_error(vm, "test.assert expects 1 argument");
+    return 0;
+  }
+  lt_Value val = lt_pop(vm);
+  if (!LT_IS_TRUTHY(val)) {
+    lt_error(vm, "assertion failed");
+    return 0;
+  }
+  return 0;
+}
+
+static uint8_t test_expect_error(lt_VM *vm, uint8_t argc) {
+  if (argc < 1) {
+    lt_error(vm, "test.expect_error expects 1 argument");
+    return 0;
+  }
+  lt_Value val = lt_pop(vm);
+  if (!LT_IS_STRING(val)) {
+    lt_error(vm, "test.expect_error expects a string argument");
+    return 0;
+  }
+  const char *source = lt_get_string(vm, val);
+
+  // can only check for compile time errors right now
+  // lt_dostring will hang, so i can't validate runtime errors with this
+  // function
+  bool prev = had_error;
+  std::string prev_msg = error_msg;
+  had_error = false;
+  error_msg.clear();
+
+  lt_loadstring(vm, source, "expect_error");
+
+  bool caught = had_error;
+  had_error = prev;
+  error_msg = prev_msg;
+
+  if (!caught) {
+    lt_error(vm, "expected error but code succeeded");
+    return 0;
+  }
+  return 0;
 }
 
 int main(void) {
   lt_VM *vm = lt_open(malloc, free, error);
   ltstd_open_all(vm);
+
+  lt_Value test_table = lt_make_table(vm);
+  lt_table_set(vm, test_table, lt_make_string(vm, "assert"),
+               lt_make_native(vm, test_assert));
+  lt_table_set(vm, test_table, lt_make_string(vm, "expect_error"),
+               lt_make_native(vm, test_expect_error));
+  lt_table_set(vm, vm->global, lt_make_string(vm, "test"), test_table);
 
   std::vector<fs::path> files;
   for (const auto &entry : fs::directory_iterator("tests")) {
@@ -60,8 +113,7 @@ int main(void) {
 
   lt_destroy(vm);
 
-  std::cout << std::endl
-            << passed << " passed, " << failed << " failed" << std::endl;
+  std::cout << passed << " passed, " << failed << " failed" << std::endl;
 
   if (failed > 0) {
     std::ofstream log("tests/error.log");

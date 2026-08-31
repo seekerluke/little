@@ -1,0 +1,18 @@
+var sum = 0
+var arr = [ 10, 20, 30 ]
+for item in array.each(arr) {
+  sum = sum + item
+}
+test.assert(sum is 60)
+
+var count = 0
+for i in array.range(5) {
+  count = count + 1
+}
+test.assert(count is 5)
+
+var total = 0
+for i in array.range(1, 6) {
+  total = total + i
+}
+test.assert(total is 15)

@@ -1,0 +1,31 @@
+var a = [ 10, 20, 30, 40, 50 ]
+test.assert(array.len(a) is 5)
+
+var b = []
+test.assert(array.len(b) is 0)
+
+var e = []
+array.push(e, 1)
+array.push(e, 2)
+array.push(e, 3)
+test.assert(array.len(e) is 3)
+test.assert(e[0] is 1)
+test.assert(e[2] is 3)
+
+var sum = 0
+for i in array.range(1, 6) {
+  sum = sum + i
+}
+test.assert(sum is 15)
+
+var evens = 0
+for i in array.range(0, 10, 2) {
+  evens = evens + 1
+}
+test.assert(evens is 5)
+
+var count = 0
+for item in array.each(a) {
+  count = count + item
+}
+test.assert(count is 150)

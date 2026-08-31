@@ -1,0 +1,4 @@
+test.expect_error("var 10")
+test.expect_error("var")
+test.expect_error("if")
+test.expect_error("while")

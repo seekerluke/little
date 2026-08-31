@@ -1,0 +1,17 @@
+var a = [ 1, 2, 3 ]
+test.assert(a[0] is 1)
+test.assert(a[1] is 2)
+test.assert(a[2] is 3)
+
+var b = [ "hello", true, null ]
+test.assert(b[0] is "hello")
+test.assert(b[1] is true)
+test.assert(b[2] is null)
+
+var c = []
+test.assert(c[0] is null)
+
+var e = [ 10, 20, 30 ]
+test.assert(e[0] is 10)
+e[0] = 99
+test.assert(e[0] is 99)

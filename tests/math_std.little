@@ -1,0 +1,52 @@
+test.assert(math.floor(1.5) is 1)
+test.assert(math.floor(2.9) is 2)
+test.assert(math.floor(-1.5) is -2)
+
+test.assert(math.ceil(1.5) is 2)
+test.assert(math.ceil(1.1) is 2)
+test.assert(math.ceil(-1.5) is -1)
+
+test.assert(math.round(1.5) is 2)
+test.assert(math.round(1.4) is 1)
+test.assert(math.round(2.0) is 2)
+
+test.assert(math.sqrt(9) is 3)
+test.assert(math.sqrt(16) is 4)
+test.assert(math.sqrt(2) > 1.4)
+test.assert(math.sqrt(2) < 1.5)
+
+test.assert(math.abs(5) is 5)
+test.assert(math.abs(-5) is 5)
+test.assert(math.abs(0) is 0)
+
+test.assert(math.min(3, 5) is 3)
+test.assert(math.min(5, 3) is 3)
+test.assert(math.max(3, 5) is 5)
+test.assert(math.max(5, 3) is 5)
+
+test.assert(math.pow(2, 3) is 8)
+test.assert(math.pow(10, 2) is 100)
+test.assert(math.pow(5, 0) is 1)
+
+test.assert(math.mod(10, 3) is 1)
+test.assert(math.mod(10, 2) is 0)
+test.assert(math.mod(7, 4) is 3)
+
+test.assert(math.pi > 3.14)
+test.assert(math.pi < 3.15)
+test.assert(math.e > 2.71)
+test.assert(math.e < 2.72)
+
+test.assert(math.exp(0) is 1)
+test.assert(math.log(1) is 0)
+test.assert(math.log10(100) is 2)
+
+test.assert(math.sin(0) is 0)
+test.assert(math.cos(0) is 1)
+test.assert(math.tan(0) is 0)
+
+test.assert(math.asin(0) is 0)
+test.assert(math.acos(1) is 0)
+test.assert(math.atan(0) is 0)
+
+# TODO: add sinh, cosh, tanh

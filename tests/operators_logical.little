@@ -1,0 +1,22 @@
+test.assert(true and true)
+test.assert(not (true and false))
+test.assert(not (false and true))
+test.assert(not (false and false))
+test.assert(true or true)
+test.assert(true or false)
+test.assert(false or true)
+test.assert(not (false or false))
+test.assert(not (not true))
+test.assert(not false)
+test.assert(not null)
+
+var r1 = false and 5
+test.assert(r1 is false)
+var r2 = null and 5
+test.assert(r2 is null)
+test.assert(1 and 2 is 2)
+test.assert(2 and 1 is 1)
+test.assert(0 or 7 is 7)
+test.assert(null or "default" is "default")
+test.assert(false or "fallback" is "fallback")
+test.assert(5 or 9 is 5)

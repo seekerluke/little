@@ -289,12 +289,12 @@ static uint8_t faststrcmp(const char *a, uint64_t a_len, const char *b,
 }
 
 uint8_t lt_equals(lt_Value a, lt_Value b) {
-  if (LT_IS_NUMBER(a) != LT_IS_NUMBER(b) ||
-      (a & LT_TYPE_MASK) != (b & LT_TYPE_MASK))
-    return 0;
+  if (LT_IS_NUMBER(a) || LT_IS_NUMBER(b))
+    return LT_IS_NUMBER(a) && LT_IS_NUMBER(b) &&
+           LT_GET_NUMBER(a) == LT_GET_NUMBER(b);
 
-  // TODO: add number equality
-  // docs state that "is" and "isnt" should work on any type
+  if ((a & LT_TYPE_MASK) != (b & LT_TYPE_MASK))
+    return 0;
 
   switch (a & LT_TYPE_MASK) {
   case LT_TYPE_NULL:
@@ -1704,9 +1704,12 @@ inst_loop:
   case LT_OP_MUL:
     TOP = (lt_make_number(VALTONUM(POP()) * VALTONUM(TOP)));
     NEXT;
-  case LT_OP_DIV:
-    TOP = (lt_make_number(VALTONUM(POP()) / VALTONUM(TOP)));
+  case LT_OP_DIV: {
+    double num = VALTONUM(POP()) / VALTONUM(TOP);
+    printf("div result: %f\n", num);
+    TOP = (lt_make_number(num));
     NEXT;
+  }
 
   case LT_OP_EQ:
     TOP = (lt_equals(POP(), TOP) ? LT_VALUE_TRUE : LT_VALUE_FALSE);
@@ -1726,9 +1729,14 @@ inst_loop:
     TOP = (lt_make_number(VALTONUM(TOP) * -1.0));
     NEXT;
 
-  case LT_OP_AND:
-    PUSH(LT_IS_TRUTHY(POP()) && LT_IS_TRUTHY(POP()) ? LT_VALUE_TRUE
-                                                    : LT_VALUE_FALSE);
+  case LT_OP_AND: {
+    lt_Value left = POP();
+    lt_Value right = POP();
+    if (LT_IS_TRUTHY(left))
+      PUSH(right);
+    else
+      PUSH(left);
+  }
     NEXT;
 
   case LT_OP_OR: {

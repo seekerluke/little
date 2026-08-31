@@ -1,0 +1,13 @@
+var i = 0
+while i < 10 {
+  i = i + 1
+}
+test.assert(i is 10)
+
+var sum = 0
+var j = 1
+while j <= 5 {
+  sum = sum + j
+  j = j + 1
+}
+test.assert(sum is 15)

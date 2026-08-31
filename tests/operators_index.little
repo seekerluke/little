@@ -1,0 +1,31 @@
+var arr = [ 10, 20, 30 ]
+test.assert(arr[0] is 10)
+test.assert(arr[1] is 20)
+test.assert(arr[2] is 30)
+
+var t = { x: 100 y: 200 z: 300 }
+test.assert(t.x is 100)
+test.assert(t.y is 200)
+test.assert(t.z is 300)
+
+test.assert(t["x"] is 100)
+test.assert(t["y"] is 200)
+test.assert(t["z"] is 300)
+
+t.a = 42
+test.assert(t.a is 42)
+test.assert(t["a"] is 42)
+
+t["a"] = 20
+test.assert(t.a is 20)
+test.assert(t["a"] is 20)
+
+var nested = { inner: { val: 99 } }
+test.assert(nested.inner.val is 99)
+test.assert(nested["inner"]["val"] is 99)
+
+var arr2 = [ [1, 2], [3, 4] ]
+test.assert(arr2[0][0] is 1)
+test.assert(arr2[0][1] is 2)
+test.assert(arr2[1][0] is 3)
+test.assert(arr2[1][1] is 4)

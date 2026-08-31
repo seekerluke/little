@@ -1,0 +1,10 @@
+var t = { name: "alice" age: 30 active: true }
+test.assert(t.name is "alice")
+test.assert(t["name"] is "alice")
+test.assert(t.age is 30)
+test.assert(t.active is true)
+
+var t2 = {}
+t2.x = 10
+t2["y"] = 20
+test.assert(t2.x + t2.y is 30)

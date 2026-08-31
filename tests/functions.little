@@ -1,0 +1,23 @@
+var add = fn(a, b) {
+  return a + b
+}
+test.assert(add(2, 3) is 5)
+test.assert(add(10, 20) is 30)
+
+var noargs = fn() {
+  return 42
+}
+test.assert(noargs() is 42)
+
+var identity = fn(x) {
+  return x
+}
+test.assert(identity("hello") is "hello")
+test.assert(identity(99) is 99)
+test.assert(identity(true) is true)
+test.assert(identity(null) is null)
+
+var apply = fn(f, a, b) {
+  return f(a, b)
+}
+test.assert(apply(add, 100, 200) is 300)

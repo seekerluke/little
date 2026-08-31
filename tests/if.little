@@ -1,0 +1,23 @@
+var result = ""
+
+var x = 10
+if x is 10 {
+  result = "a"
+}
+test.assert(result is "a")
+
+if x is 20 {
+  result = "b"
+} else {
+  result = "c"
+}
+test.assert(result is "c")
+
+if x is 20 {
+  result = "d"
+} elseif x is 10 {
+  result = "e"
+} else {
+  result = "f"
+}
+test.assert(result is "e")
