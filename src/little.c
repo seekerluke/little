@@ -1705,9 +1705,7 @@ inst_loop:
     TOP = (lt_make_number(VALTONUM(POP()) * VALTONUM(TOP)));
     NEXT;
   case LT_OP_DIV: {
-    double num = VALTONUM(POP()) / VALTONUM(TOP);
-    printf("div result: %f\n", num);
-    TOP = (lt_make_number(num));
+    TOP = (lt_make_number(VALTONUM(POP()) / VALTONUM(TOP)));
     NEXT;
   }
 
