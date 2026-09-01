@@ -173,8 +173,8 @@ LT_SIMPLE_MATH_FN(fabs)
   static uint8_t _lt_##name(lt_VM *vm, uint8_t argc) {                         \
     if (argc != 2)                                                             \
       lt_runtime_error(vm, "Expected two arguments to math." #name "!");       \
-    lt_Value arg1 = lt_pop(vm);                                                \
     lt_Value arg2 = lt_pop(vm);                                                \
+    lt_Value arg1 = lt_pop(vm);                                                \
     if (!LT_IS_NUMBER(arg1) || !LT_IS_NUMBER(arg2))                            \
       lt_runtime_error(vm,                                                     \
                        "Expected argument to math." #name " to be number!");   \
