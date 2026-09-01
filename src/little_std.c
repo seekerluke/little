@@ -306,8 +306,8 @@ static uint8_t _lt_array_last(lt_VM *vm, uint8_t argc) {
 static uint8_t _lt_array_push(lt_VM *vm, uint8_t argc) {
   if (argc != 2)
     lt_runtime_error(vm, "Expected two arguments to array.push!");
-  lt_Value arr = lt_pop(vm);
   lt_Value val = lt_pop(vm);
+  lt_Value arr = lt_pop(vm);
   if (!LT_IS_ARRAY(arr))
     lt_runtime_error(vm, "Expected first argument to array.push to be array!");
 
@@ -318,8 +318,8 @@ static uint8_t _lt_array_push(lt_VM *vm, uint8_t argc) {
 static uint8_t _lt_array_remove(lt_VM *vm, uint8_t argc) {
   if (argc != 2)
     lt_runtime_error(vm, "Expected two arguments to array.remove!");
-  lt_Value arr = lt_pop(vm);
   lt_Value idx = lt_pop(vm);
+  lt_Value arr = lt_pop(vm);
   if (!LT_IS_ARRAY(arr))
     lt_runtime_error(vm,
                      "Expected first argument to array.remove to be array!");
