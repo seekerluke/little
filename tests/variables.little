@@ -4,10 +4,10 @@ test.assert(a is null)
 var b = 10
 test.assert(b is 10)
 
-var c = (1 or 2)
+var c = 1 or 2
 test.assert(c is 1)
 
-var d = (null or 5)
+var d = null or 5
 test.assert(d is 5)
 
 var e = 0
