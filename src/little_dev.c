@@ -1,6 +1,7 @@
 #include "little_dev.h"
 #include "little.h"
 
+#include <stddef.h>
 #include <stdio.h>
 
 // mirror lt_buffer_at from little.c
@@ -435,4 +436,27 @@ void ltdev_print_compiled(lt_VM *vm, lt_Value compiled) {
                    obj->type == LT_OBJECT_CHUNK ? "chunk" : "function");
   else
     printf("(not a chunk/function)\n");
+}
+
+void ltdev_print_stack(lt_VM *vm) {
+  uint32_t n = (uint32_t)(vm->top - vm->stack);
+
+  if (n == 0) {
+    printf("stack: <empty>\n");
+    return;
+  }
+
+  ptrdiff_t frame_base =
+      vm->current ? (ptrdiff_t)(vm->current->start - vm->stack) : (ptrdiff_t)-1;
+
+  printf("stack: %u slot%s\n", n, n == 1 ? "" : "s");
+  for (uint32_t i = 0; i < n; ++i) {
+    char c[128];
+    format_constant(vm, vm->stack[i], c, sizeof c);
+    printf("  [%2u] %s", i, c);
+    if (vm->current && (ptrdiff_t)i == frame_base)
+      printf("  <- frame start");
+    printf("\n");
+  }
+  printf("  top (next slot): %u\n", n);
 }
