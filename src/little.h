@@ -442,8 +442,8 @@ uint8_t lt_table_pop(lt_VM *vm, lt_Value table, lt_Value key);
 
 lt_Value lt_make_array(lt_VM *vm);
 lt_Value lt_array_push(lt_VM *vm, lt_Value array, lt_Value val);
-lt_Value *lt_array_at(lt_Value array, uint32_t idx);
-lt_Value lt_array_remove(lt_VM *vm, lt_Value array, uint32_t idx);
+lt_Value *lt_array_at(lt_Value array, int32_t idx);
+lt_Value lt_array_remove(lt_VM *vm, lt_Value array, int32_t idx);
 uint32_t lt_array_length(lt_Value array);
 
 lt_Value lt_make_native(lt_VM *vm, lt_NativeFn fn);

@@ -1,5 +1,4 @@
 #include "little.h"
-#include "little_dev.h"
 
 #include <ctype.h>
 #include <setjmp.h>
@@ -2435,14 +2434,20 @@ lt_Value lt_array_push(lt_VM *vm, lt_Value array, lt_Value val) {
   return val;
 }
 
-lt_Value *lt_array_at(lt_Value array, uint32_t idx) {
+lt_Value *lt_array_at(lt_Value array, int32_t idx) {
   if (!LT_IS_ARRAY(array))
     return &LT_NULL;
+
+  uint32_t len = lt_array_length(array);
+  if (idx < 0 || idx > (int32_t)len - 1) {
+    return &LT_NULL;
+  }
+
   lt_Object *arr = LT_GET_OBJECT(array);
   return lt_buffer_at(&arr->u.array, idx);
 }
 
-lt_Value lt_array_remove(lt_VM *vm, lt_Value array, uint32_t idx) {
+lt_Value lt_array_remove(lt_VM *vm, lt_Value array, int32_t idx) {
   (void)vm;
   if (!LT_IS_ARRAY(array))
     return LT_VALUE_NULL;

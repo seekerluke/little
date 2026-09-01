@@ -36,8 +36,8 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  printf("Tokeniser output:\n");
-  ltdev_print_tokens(&tok);
+  // printf("Tokeniser output:\n");
+  // ltdev_print_tokens(&tok);
 
   lt_Parser p = lt_parse(vm, &tok);
   if (!p.is_valid) {
@@ -51,8 +51,8 @@ int main(int argc, char **argv) {
 
   lt_Value c = lt_compile(vm, &p);
 
-  // printf("Compiled output:\n");
-  // ltdev_print_compiled(vm, c);
+  printf("Compiled output:\n");
+  ltdev_print_compiled(vm, c);
 
   uint16_t nresults = lt_exec(vm, c, 0);
   for (int i = 0; i < nresults; i++) {

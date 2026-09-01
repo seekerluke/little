@@ -20,7 +20,7 @@ static void error(lt_VM *vm, const char *msg) {
   (void)vm;
   had_error = true;
   error_msg = msg;
-  printf("test error: %s\n", msg);
+  // printf("test error: %s\n", msg);
 }
 
 static uint8_t test_assert(lt_VM *vm, uint8_t argc) {
