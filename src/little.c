@@ -82,7 +82,7 @@ lt_Buffer lt_buffer_new(uint32_t element_size) {
   buf.element_size = element_size;
   buf.capacity = 0;
   buf.length = 0;
-  buf.data = 0;
+  buf.data = NULL;
 
   return buf;
 }
@@ -90,7 +90,7 @@ lt_Buffer lt_buffer_new(uint32_t element_size) {
 void lt_buffer_destroy(lt_VM *vm, lt_Buffer *buf) {
   if (buf->data != NULL)
     vm->free(buf->data);
-  buf->data = 0;
+  buf->data = NULL;
   buf->length = 0;
   buf->capacity = 0;
 }
@@ -659,7 +659,7 @@ uint32_t _lt_find_local(lt_VM *vm, lt_Scope *scope, lt_Token *t) {
 }
 
 lt_Token *_lt_parse_expression(lt_VM *vm, lt_Parser *p, lt_Token *start,
-                               lt_AstNode *dst);
+                               lt_AstNode **out);
 lt_Scope *_lt_parse_block(lt_VM *vm, lt_Parser *p, lt_Token *start,
                           lt_Buffer *dst, uint8_t expects_terminator,
                           uint8_t makes_scope, lt_Token **argnames) {
@@ -698,9 +698,8 @@ lt_Scope *_lt_parse_block(lt_VM *vm, lt_Parser *p, lt_Token *start,
       lt_AstNode *if_statement =
           _lt_get_node_of_type(vm, current, p, LT_AST_NODE_IF);
       current++;
-      lt_AstNode *expr =
-          _lt_get_node_of_type(vm, current, p, LT_AST_NODE_EMPTY);
-      current = _lt_parse_expression(vm, p, current, expr);
+      lt_AstNode *expr = 0;
+      current = _lt_parse_expression(vm, p, current, &expr);
 
       if (current->type != LT_TOKEN_OPENBRACE)
         _lt_parse_error(vm, p->tkn->module, current,
@@ -730,9 +729,8 @@ lt_Scope *_lt_parse_block(lt_VM *vm, lt_Parser *p, lt_Token *start,
           current++;
           node->type = LT_AST_NODE_ELSEIF;
 
-          lt_AstNode *expr =
-              _lt_get_node_of_type(vm, current, p, LT_AST_NODE_EMPTY);
-          current = _lt_parse_expression(vm, p, current, expr);
+          lt_AstNode *expr = 0;
+          current = _lt_parse_expression(vm, p, current, &expr);
 
           node->u.branch.expr = expr;
         } else {
@@ -770,9 +768,8 @@ lt_Scope *_lt_parse_block(lt_VM *vm, lt_Parser *p, lt_Token *start,
                         "Expected 'in' to follow 'for' iterator!");
       current++;
 
-      lt_AstNode *iter_expr =
-          _lt_get_node_of_type(vm, current, p, LT_AST_NODE_EMPTY);
-      current = _lt_parse_expression(vm, p, current, iter_expr);
+      lt_AstNode *iter_expr = 0;
+      current = _lt_parse_expression(vm, p, current, &iter_expr);
 
       for_expr->u.loop.identifier = iteridx;
 
@@ -814,9 +811,8 @@ lt_Scope *_lt_parse_block(lt_VM *vm, lt_Parser *p, lt_Token *start,
           _lt_get_node_of_type(vm, current, p, LT_AST_NODE_WHILE);
       current++; // eat while
 
-      lt_AstNode *iter_expr =
-          _lt_get_node_of_type(vm, current, p, LT_AST_NODE_EMPTY);
-      current = _lt_parse_expression(vm, p, current, iter_expr);
+      lt_AstNode *iter_expr = 0;
+      current = _lt_parse_expression(vm, p, current, &iter_expr);
 
       while_expr->u.loop.iterator = iter_expr;
 
@@ -839,9 +835,8 @@ lt_Scope *_lt_parse_block(lt_VM *vm, lt_Parser *p, lt_Token *start,
       ret->u.ret.expr = 0;
       current++; // eat 'return'
 
-      lt_AstNode *expr =
-          _lt_get_node_of_type(vm, current, p, LT_AST_NODE_EMPTY);
-      lt_Token *new_current = _lt_parse_expression(vm, p, current, expr);
+      lt_AstNode *expr = 0;
+      lt_Token *new_current = _lt_parse_expression(vm, p, current, &expr);
       if (current != new_current) {
         ret->u.ret.expr = expr;
         current = new_current;
@@ -869,23 +864,20 @@ lt_Scope *_lt_parse_block(lt_VM *vm, lt_Parser *p, lt_Token *start,
       lt_AstNode *rhs = 0;
       if (current->type == LT_TOKEN_ASSIGN) {
         current++;
-        rhs = _lt_get_node_of_type(vm, current, p, LT_AST_NODE_EMPTY);
-        current = _lt_parse_expression(vm, p, current, rhs);
+        current = _lt_parse_expression(vm, p, current, &rhs);
       }
 
       declare->u.declare.expr = rhs;
       lt_buffer_push(vm, dst, &declare);
     } break;
     default: {
-      lt_AstNode *result =
-          _lt_get_node_of_type(vm, current, p, LT_AST_NODE_EMPTY);
-      current = _lt_parse_expression(vm, p, current, result);
+      lt_AstNode *result = 0;
+      current = _lt_parse_expression(vm, p, current, &result);
 
       if (current->type == LT_TOKEN_ASSIGN) {
         current++;
-        lt_AstNode *expr =
-            _lt_get_node_of_type(vm, current, p, LT_AST_NODE_EMPTY);
-        current = _lt_parse_expression(vm, p, current, expr);
+        lt_AstNode *expr = 0;
+        current = _lt_parse_expression(vm, p, current, &expr);
 
         lt_AstNode *lhs = result;
 
@@ -946,7 +938,7 @@ uint8_t _lt_get_prec(lt_TokenType op) {
   case LT_TOKEN_FN
 
 lt_Token *_lt_parse_expression(lt_VM *vm, lt_Parser *p, lt_Token *start,
-                               lt_AstNode *dst) {
+                               lt_AstNode **out) {
   uint8_t n_open = 0;
   lt_Token *previous = 0;
   lt_Token *current = start;
@@ -1010,9 +1002,8 @@ lt_Token *_lt_parse_expression(lt_VM *vm, lt_Parser *p, lt_Token *start,
 
       if (is_index) {
         NEXT(); // eat bracket
-        lt_AstNode *idx_expr =
-            _lt_get_node_of_type(vm, current, p, LT_AST_NODE_EMPTY);
-        current = _lt_parse_expression(vm, p, current, idx_expr);
+        lt_AstNode *idx_expr = 0;
+        current = _lt_parse_expression(vm, p, current, &idx_expr);
         if (current->type != LT_TOKEN_CLOSEBRACKET)
           _lt_parse_error(
               vm, p->tkn->module, current,
@@ -1034,9 +1025,8 @@ lt_Token *_lt_parse_expression(lt_VM *vm, lt_Parser *p, lt_Token *start,
         arr_expr->u.array.values = lt_buffer_new(sizeof(lt_AstNode *));
 
         while (current->type != LT_TOKEN_CLOSEBRACKET) {
-          lt_AstNode *value =
-              _lt_get_node_of_type(vm, current, p, LT_AST_NODE_EMPTY);
-          current = _lt_parse_expression(vm, p, current, value);
+          lt_AstNode *value = 0;
+          current = _lt_parse_expression(vm, p, current, &value);
           lt_buffer_push(vm, &arr_expr->u.array.values, &value);
 
           if (current->type == LT_TOKEN_COMMA)
@@ -1162,9 +1152,8 @@ lt_Token *_lt_parse_expression(lt_VM *vm, lt_Parser *p, lt_Token *start,
             if (current->type == LT_TOKEN_COMMA)
               NEXT();
 
-            lt_AstNode *arg =
-                _lt_get_node_of_type(vm, current, p, LT_AST_NODE_EMPTY);
-            current = _lt_parse_expression(vm, p, current, arg);
+            lt_AstNode *arg = 0;
+            current = _lt_parse_expression(vm, p, current, &arg);
             call->u.call.args[nargs++] = arg;
           }
 
@@ -1223,9 +1212,8 @@ lt_Token *_lt_parse_expression(lt_VM *vm, lt_Parser *p, lt_Token *start,
                           "Expected colon to follow table index!");
         NEXT(); // eat colon
 
-        lt_AstNode *value =
-            _lt_get_node_of_type(vm, current, p, LT_AST_NODE_EMPTY);
-        current = _lt_parse_expression(vm, p, current, value);
+        lt_AstNode *value = 0;
+        current = _lt_parse_expression(vm, p, current, &value);
 
         lt_buffer_push(vm, &table->u.table.keys, &key);
         lt_buffer_push(vm, &table->u.table.values, &value);
@@ -1321,9 +1309,8 @@ expr_end:
     lt_buffer_push(vm, &value_stack, &current);
   }
 
-  if (value_stack.length > 0) {
-    memcpy(dst, *(void **)lt_buffer_at(&value_stack, 0), sizeof(lt_AstNode));
-  }
+  if (value_stack.length > 0 && out)
+    *out = *(lt_AstNode **)lt_buffer_at(&value_stack, 0);
 
   lt_buffer_destroy(vm, &result);
   lt_buffer_destroy(vm, &operator_stack);
@@ -2352,6 +2339,7 @@ lt_Value lt_loadstring(lt_VM *vm, const char *source, const char *mod_name) {
 
   lt_Parser p = lt_parse(vm, &tok);
   if (!p.is_valid) {
+    lt_free_tokenizer(vm, &tok);
     lt_free_parser(vm, &p);
     return LT_VALUE_NULL;
   }

@@ -1,3 +1,6 @@
+set_policy("build.sanitizer.address", true)
+set_policy("build.sanitizer.undefined", true)
+
 target("little")
     set_kind("binary")
     add_files("*.c")

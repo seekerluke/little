@@ -1,2 +1,1 @@
-var c = []
-io.print(c[0])
+var t = { x: 10 y: 20 }
