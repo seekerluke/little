@@ -1,4 +1,5 @@
 #include "little.h"
+#include "little_dev.h"
 
 #include <ctype.h>
 #include <setjmp.h>
@@ -186,31 +187,48 @@ static lt_DebugLoc _lt_get_location(lt_DebugInfo *info, uint32_t pc) {
   return (lt_DebugLoc){0, 0};
 }
 
+static uint32_t _lt_print_stackframe_info(lt_VM *vm, char *buf_start,
+                                          uint32_t buf_size,
+                                          uint32_t callstack_idx,
+                                          const char *message) {
+  const char *name = "<unknown>";
+  uint16_t line = 0;
+  uint16_t col = 0;
+
+  lt_Frame *topmost = &vm->callstack[callstack_idx];
+  lt_DebugInfo *info = _lt_get_debuginfo(topmost->callee);
+  if (info) {
+    name = info->module_name;
+    lt_DebugLoc loc =
+        _lt_get_location(info, *topmost->ip - (lt_Op *)topmost->code->data);
+    line = loc.line;
+    col = loc.col;
+  } else if (topmost->callee->type == LT_OBJECT_NATIVEFN) {
+    // lt_DebugInfo contains bytecode locations, not relevant for native
+    // functions
+    name = "<native>";
+  }
+
+  uint32_t len = 0;
+  if (message) {
+    len = snprintf(buf_start, buf_size, "(%s|%d:%d): %s\n", name, line, col,
+                   message);
+  } else {
+    len = snprintf(buf_start, buf_size, "(%s|%d:%d)\n", name, line, col);
+  }
+
+  return len;
+}
+
 void lt_runtime_error(lt_VM *vm, const char *message) {
   char sprint_buf[1024];
 
-  lt_Frame *topmost = &vm->callstack[vm->depth - 1];
-  lt_DebugInfo *info = _lt_get_debuginfo(topmost->callee);
-  lt_DebugLoc loc =
-      _lt_get_location(info, *topmost->ip - (lt_Op *)topmost->code->data);
-
-  const char *name = "<unknown>";
-  if (info)
-    name = info->module_name;
-
-  uint32_t len = snprintf(sprint_buf, 1024, "%s|%d:%d: %s\ntraceback:", name,
-                          loc.line, loc.col, message);
-  for (uint32_t i = vm->depth - 1; i >= 0; --i) {
-    lt_Frame *frame = &vm->callstack[i];
-    lt_DebugInfo *info = _lt_get_debuginfo(frame->callee);
-    lt_DebugLoc loc =
-        _lt_get_location(info, *frame->ip - (lt_Op *)frame->code->data);
-
-    const char *name = "<unknown>";
-    if (info)
-      name = info->module_name;
-    len = snprintf(sprint_buf + len, 1024 - len, "\n(%s|%d:%d)", name, loc.line,
-                   loc.col);
+  uint32_t len =
+      _lt_print_stackframe_info(vm, sprint_buf, 1024, vm->depth - 1, message);
+  len += snprintf(sprint_buf + len, 1024 - len, "traceback:\n");
+  for (uint32_t i = vm->depth; i > 0; --i) {
+    len += _lt_print_stackframe_info(vm, sprint_buf + len, 1024 - len, i - 1,
+                                     NULL);
   }
 
   lt_error(vm, sprint_buf);
@@ -996,7 +1014,7 @@ lt_Token *_lt_parse_expression(lt_VM *vm, lt_Parser *p, lt_Token *start,
         lt_AstNode *idx_expr =
             _lt_get_node_of_type(vm, current, p, LT_AST_NODE_EMPTY);
         current = _lt_parse_expression(vm, p, current, idx_expr);
-        if (PEEK()->type != LT_TOKEN_CLOSEBRACKET)
+        if (current->type != LT_TOKEN_CLOSEBRACKET)
           _lt_parse_error(
               vm, p->tkn->module, current,
               "Expected closing bracket to follow index expression!");

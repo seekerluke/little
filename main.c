@@ -46,13 +46,13 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  printf("Parser output:\n");
-  ltdev_print_ast(&p);
+  // printf("Parser output:\n");
+  // ltdev_print_ast(&p);
 
   lt_Value c = lt_compile(vm, &p);
 
-  printf("Compiled output:\n");
-  ltdev_print_compiled(vm, c);
+  // printf("Compiled output:\n");
+  // ltdev_print_compiled(vm, c);
 
   uint16_t nresults = lt_exec(vm, c, 0);
   for (int i = 0; i < nresults; i++) {

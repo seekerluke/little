@@ -5,6 +5,7 @@ target("little")
     add_includedirs("src")
     set_languages("c99")
     set_warnings("allextra", "pedantic", "error")
+    set_rundir("$(projectdir)")
     if is_mode("debug") then
         set_symbols("debug")
     elseif is_mode("release") then
@@ -20,6 +21,7 @@ target("tests")
     set_languages("c++17")
     set_warnings("allextra", "pedantic", "error")
     set_strip("all")
+    set_rundir("$(projectdir)")
     if is_mode("debug") then
         set_symbols("debug")
     elseif is_mode("release") then
