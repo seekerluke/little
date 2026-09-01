@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #include "src/little.h"
-#include "src/little_dev.h"
+// #include "src/little_dev.h"
 #include "src/little_std.h"
 
 void error(lt_VM *vm, const char *msg) {
@@ -46,8 +46,8 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  printf("Parser output:\n");
-  ltdev_print_ast(&p);
+  // printf("Parser output:\n");
+  // ltdev_print_ast(&p);
 
   lt_Value c = lt_compile(vm, &p);
 

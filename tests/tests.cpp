@@ -8,6 +8,7 @@
 
 extern "C" {
 #include "little.h"
+#include "little_dev.h"
 #include "little_std.h"
 }
 
@@ -20,7 +21,6 @@ static void error(lt_VM *vm, const char *msg) {
   (void)vm;
   had_error = true;
   error_msg = msg;
-  // printf("test error: %s\n", msg);
 }
 
 static uint8_t test_assert(lt_VM *vm, uint8_t argc) {
@@ -30,7 +30,7 @@ static uint8_t test_assert(lt_VM *vm, uint8_t argc) {
   }
   lt_Value val = lt_pop(vm);
   if (!LT_IS_TRUTHY(val)) {
-    lt_error(vm, "assertion failed");
+    lt_runtime_error(vm, "assertion failed");
     return 0;
   }
   return 0;
@@ -118,7 +118,7 @@ int main(void) {
   if (failed > 0) {
     std::ofstream log("tests/error.log");
     for (const auto &failure : failures)
-      log << failure.first << ": " << failure.second << std::endl;
+      log << failure.first << ": " << failure.second << "\n\n";
 
     std::cout << "Check tests/error.log for failure reasons." << std::endl;
   }

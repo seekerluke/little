@@ -2060,14 +2060,24 @@ static void _lt_compile_node(lt_VM *vm, lt_Parser *p, const char *name,
       fn->u.fn.debug->module_name = name;
     }
 
-    lt_Op op = {LT_OP_PUSH, 0};
-    lt_buffer_push(vm, &fn->u.fn.code, &op);
+    lt_Buffer *fn_debug = fn->u.fn.debug ? &fn->u.fn.debug->locations : NULL;
 
-    _lt_compile_body(vm, p, name, &fn->u.fn.debug->locations, &node->u.fn.body,
-                     node->u.fn.scope, &fn->u.fn.code, &fn->u.fn.constants);
+    // shadowing to allow OP to work with PUSH and RET
+    // this feels cleaner to me than rewriting the OP logic
+    {
+      lt_Buffer *code_body = &fn->u.fn.code;
+      lt_Buffer *debug = fn_debug;
+      OP(PUSH);
+    }
 
-    lt_Op op2 = {LT_OP_RET, 0};
-    lt_buffer_push(vm, &fn->u.fn.code, &op2);
+    _lt_compile_body(vm, p, name, fn_debug, &node->u.fn.body, node->u.fn.scope,
+                     &fn->u.fn.code, &fn->u.fn.constants);
+
+    {
+      lt_Buffer *code_body = &fn->u.fn.code;
+      lt_Buffer *debug = fn_debug;
+      OP(RET);
+    }
 
     ((lt_Op *)lt_buffer_at(&fn->u.fn.code, 0))->arg =
         node->u.fn.scope->locals.length;
@@ -2258,15 +2268,18 @@ lt_Value lt_compile(lt_VM *vm, lt_Parser *p) {
     chunk->u.chunk.debug->module_name = chunk->u.chunk.name;
   }
 
-  lt_Op op = {LT_OP_PUSH, 0};
-  lt_buffer_push(vm, &chunk->u.chunk.code, &op);
+  lt_AstNode *node = p->root;
+  lt_Buffer *code_body = &chunk->u.chunk.code;
+  lt_Buffer *debug =
+      chunk->u.chunk.debug ? &chunk->u.chunk.debug->locations : NULL;
 
-  _lt_compile_body(vm, p, chunk->u.chunk.name, &chunk->u.chunk.debug->locations,
-                   &p->root->u.chunk.body, p->root->u.chunk.scope,
-                   &chunk->u.chunk.code, &chunk->u.chunk.constants);
+  OP(PUSH);
 
-  lt_Op op2 = {LT_OP_RET, 0};
-  lt_buffer_push(vm, &chunk->u.chunk.code, &op2);
+  _lt_compile_body(vm, p, chunk->u.chunk.name, debug, &p->root->u.chunk.body,
+                   p->root->u.chunk.scope, code_body,
+                   &chunk->u.chunk.constants);
+
+  OP(RET);
 
   ((lt_Op *)lt_buffer_at(&chunk->u.chunk.code, 0))->arg =
       p->root->u.chunk.scope->locals.length;

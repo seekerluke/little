@@ -48,5 +48,3 @@ test.assert(math.tan(0) is 0)
 test.assert(math.asin(0) is 0)
 test.assert(math.acos(1) is 0)
 test.assert(math.atan(0) is 0)
-
-# TODO: add sinh, cosh, tanh
