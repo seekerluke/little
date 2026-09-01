@@ -308,7 +308,7 @@ static uint8_t faststrcmp(const char *a, uint64_t a_len, const char *b,
 uint8_t lt_equals(lt_Value a, lt_Value b) {
   if (LT_IS_NUMBER(a) || LT_IS_NUMBER(b))
     return LT_IS_NUMBER(a) && LT_IS_NUMBER(b) &&
-           LT_GET_NUMBER(a) == LT_GET_NUMBER(b);
+           lt_get_number(a) == lt_get_number(b);
 
   if ((a & LT_TYPE_MASK) != (b & LT_TYPE_MASK))
     return 0;

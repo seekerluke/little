@@ -50,7 +50,6 @@ typedef uint64_t lt_Value;
 #define LT_IS_NATIVE(x)   (LT_IS_OBJECT(x) && LT_GET_OBJECT(x)->type == LT_OBJECT_NATIVEFN)
 #define LT_IS_PTR(x)      (LT_IS_OBJECT(x) && LT_GET_OBJECT(x)->type == LT_OBJECT_PTR)
 
-#define LT_GET_NUMBER(x) lt_get_number(x)
 #define LT_GET_STRING(vm, x) lt_get_string(vm, x)
 #define LT_GET_OBJECT(x) ((lt_Object*)(x & LT_VALUE_MASK))
 // clang-format on

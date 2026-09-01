@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
   uint16_t nresults = lt_exec(vm, c, 0);
   for (int i = 0; i < nresults; i++) {
     lt_Value val = lt_pop(vm);
-    printf("nresults %d: %f\n", i, LT_GET_NUMBER(val));
+    printf("nresults %d: %f\n", i, lt_get_number(val));
   }
 
   lt_free_parser(vm, &p);

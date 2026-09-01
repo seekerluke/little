@@ -21,7 +21,7 @@ char *ltstd_tostring(lt_VM *vm, lt_Value val) {
   uint8_t len = 0;
 
   if (LT_IS_NUMBER(val))
-    len = snprintf(scratch, 256, "%f", LT_GET_NUMBER(val));
+    len = snprintf(scratch, 256, "%f", lt_get_number(val));
   if (LT_IS_NULL(val))
     len = snprintf(scratch, 256, "null");
   if (LT_IS_TRUE(val))
@@ -143,7 +143,7 @@ static uint8_t _lt_require(lt_VM *vm, uint8_t argc) {
       lt_runtime_error(vm,                                                     \
                        "Expected argument to math." #name " to be number!");   \
                                                                                \
-    lt_push(vm, LT_VALUE_NUMBER(name(LT_GET_NUMBER(arg))));                    \
+    lt_push(vm, LT_VALUE_NUMBER(name(lt_get_number(arg))));                    \
     return 1;                                                                  \
   }
 
@@ -180,7 +180,7 @@ LT_SIMPLE_MATH_FN(fabs)
                        "Expected argument to math." #name " to be number!");   \
                                                                                \
     lt_push(vm,                                                                \
-            LT_VALUE_NUMBER(name(LT_GET_NUMBER(arg1), LT_GET_NUMBER(arg2))));  \
+            LT_VALUE_NUMBER(name(lt_get_number(arg1), lt_get_number(arg2))));  \
     return 1;                                                                  \
   }
 
@@ -482,7 +482,7 @@ static uint8_t _lt_string_format(lt_VM *vm, uint8_t argc) {
           fmtbuf[fmtloc] = 0;
           o_idx += snprintf(
               output + o_idx, 1024 - o_idx, fmtbuf,
-              (int32_t)LT_GET_NUMBER(*(vm->top - argc + current_arg++)));
+              (int32_t)lt_get_number(*(vm->top - argc + current_arg++)));
         } break;
         case 'o':
         case 'u':
@@ -492,7 +492,7 @@ static uint8_t _lt_string_format(lt_VM *vm, uint8_t argc) {
           fmtbuf[fmtloc] = 0;
           o_idx += snprintf(
               output + o_idx, 1024 - o_idx, fmtbuf,
-              (uint32_t)LT_GET_NUMBER(*(vm->top - argc + current_arg++)));
+              (uint32_t)lt_get_number(*(vm->top - argc + current_arg++)));
         } break;
         case 'e':
         case 'E':
@@ -502,7 +502,7 @@ static uint8_t _lt_string_format(lt_VM *vm, uint8_t argc) {
           fmtbuf[fmtloc++] = *format++;
           fmtbuf[fmtloc] = 0;
           o_idx += snprintf(output + o_idx, 1024 - o_idx, fmtbuf,
-                            LT_GET_NUMBER(*(vm->top - argc + current_arg++)));
+                            lt_get_number(*(vm->top - argc + current_arg++)));
         } break;
         case 's': {
           fmtbuf[fmtloc++] = *format++;

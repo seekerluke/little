@@ -311,7 +311,7 @@ void ltdev_print_ast(lt_Parser *p) {
 // Format an lt_Value constant for disassembly output.
 static void format_constant(lt_VM *vm, lt_Value val, char *buf, uint32_t size) {
   if (LT_IS_NUMBER(val))
-    snprintf(buf, size, "%g", LT_GET_NUMBER(val));
+    snprintf(buf, size, "%g", lt_get_number(val));
   else if (LT_IS_NULL(val))
     snprintf(buf, size, "null");
   else if (LT_IS_TRUE(val))
