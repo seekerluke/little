@@ -432,13 +432,19 @@ static uint8_t _lt_string_sub(lt_VM *vm, uint8_t argc) {
     lt_runtime_error(vm, "Non-number starting point to string.sub!");
 
   const char *cstr = lt_get_string(vm, str);
+  int start_int = lt_get_number(start);
+  int cstr_len = strlen(cstr);
 
-  if (!LT_IS_NUMBER(len)) {
-    len = LT_VALUE_NUMBER(strlen(cstr) - start);
-  }
+  if (start_int < 0 || start_int > cstr_len)
+    lt_runtime_error(vm, "Start out of range of target string in string.sub!");
 
-  char *newstr = vm->alloc(LT_GET_NUMBER(len) + 1);
-  memcpy(newstr, cstr + start, len);
+  int len_int = LT_IS_NUMBER(len) ? lt_get_number(len) : cstr_len - start_int;
+  if (len_int < 0 || start_int + len_int > cstr_len)
+    lt_runtime_error(vm, "Length out of range of target string in string.sub!");
+
+  char *newstr = vm->alloc(len_int + 1);
+  memcpy(newstr, cstr + start_int, len_int);
+  newstr[len_int] = 0;
 
   lt_push(vm, lt_make_string(vm, newstr));
   vm->free(newstr);
