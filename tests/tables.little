@@ -4,6 +4,9 @@ test.assert(t["name"] is "alice")
 test.assert(t.age is 30)
 test.assert(t.active is true)
 
+var numkeys = { 1: 10 2: 20 3: 30 }
+test.assert(numkeys[1] is 10)
+
 var t2 = {}
 t2.x = 10
 t2["y"] = 20
