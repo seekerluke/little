@@ -1612,7 +1612,7 @@ uint16_t _lt_exec(lt_VM *vm, lt_Value callable, uint8_t argc) {
   }
 
   lt_Value retval;
-  lt_Value *local_start = vm->stack + argc;
+  lt_Value *local_start = frame->start;
   lt_Op *ip = (lt_Op *)frame->code->data;
   frame->ip = &ip;
 #undef NEXT

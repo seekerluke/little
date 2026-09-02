@@ -1,6 +1,5 @@
 var add = fn(a, b) {
+  io.print(a, b)
   return a + b
 }
-add(2, 3)
-
-; TODO: Arguments are NULL. Use the new print function to debug.
+io.print(add(2, 3))
