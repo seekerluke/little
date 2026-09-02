@@ -16,3 +16,27 @@ test.assert("hello" is "hello")
 test.assert("hello" isnt "world")
 test.assert("" is "")
 test.assert("a" isnt "b")
+
+var f = fn() {}
+test.assert(f is f)
+test.assert(f isnt fn() {})
+
+var upval = 0
+var c = fn() {
+  upval = 10
+}
+test.assert(c is c)
+test.assert(c isnt f)
+
+var a1 = [1, 2, 3]
+var a2 = [1, 2, 3]
+test.assert(a1 is a1)
+test.assert(a1 isnt a2)
+
+var t1 = {x: 10 y: 20}
+var t2 = {x: 10 y: 20}
+test.assert(t1 is t1)
+test.assert(t1 isnt t2)
+
+test.assert(test.assert is test.assert)
+test.assert(test.assert isnt test.expect_error)

@@ -329,6 +329,7 @@ uint8_t lt_equals(lt_Value a, lt_Value b) {
     case LT_OBJECT_CHUNK:
     case LT_OBJECT_CLOSURE:
     case LT_OBJECT_FN:
+    case LT_OBJECT_ARRAY:
     case LT_OBJECT_TABLE:
     case LT_OBJECT_NATIVEFN:
       return obja == objb;
@@ -1690,7 +1691,8 @@ inst_loop:
       PUSH(lt_table_get(vm, t, key));
     } else if (LT_IS_ARRAY(t)) {
       if (!LT_IS_NUMBER(key))
-        lt_runtime_error(vm, "Non-number value cannot be used as an index on an array");
+        lt_runtime_error(
+            vm, "Non-number value cannot be used as an index on an array");
       PUSH(*lt_array_at(t, (uint32_t)lt_get_number(key)));
     } else {
       PUSH(LT_VALUE_NULL);
