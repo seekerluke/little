@@ -990,14 +990,16 @@ lt_Token *_lt_parse_expression(lt_VM *vm, lt_Parser *p, lt_Token *start,
       lt_buffer_push(vm, &result, &ident);
     } break;
     case LT_TOKEN_OPENBRACKET: {
-      uint8_t is_index = previous != 0;
+      uint8_t is_index = previous != NULL;
       if (previous)
         switch (previous->type) {
         case LT_TOKEN_CLOSEBRACE:
         case LT_TOKEN_CLOSEBRACKET:
         case LT_TOKEN_CLOSEPAREN:
         case LT_TOKEN_IDENTIFIER:
-          is_index = 1;
+        case LT_TOKEN_FN:
+          is_index = 1; // true
+          break;
         default:
           break;
         }
@@ -1132,7 +1134,7 @@ lt_Token *_lt_parse_expression(lt_VM *vm, lt_Parser *p, lt_Token *start,
     } break;
 
     case LT_TOKEN_OPENPAREN: {
-      if (previous)
+      if (previous) {
         switch (previous->type) {
         case LT_TOKEN_CLOSEPAREN:
         case LT_TOKEN_CLOSEBRACE:
@@ -1164,10 +1166,18 @@ lt_Token *_lt_parse_expression(lt_VM *vm, lt_Parser *p, lt_Token *start,
           NEXT();
         } break;
         default:
+          // grouping paren
           n_open++;
           lt_buffer_push(vm, &operator_stack, &current->type);
           NEXT();
+          break;
         }
+      } else {
+        // grouping paren
+        n_open++;
+        lt_buffer_push(vm, &operator_stack, &current->type);
+        NEXT();
+      }
     } break;
 
     case LT_TOKEN_CLOSEPAREN: {
