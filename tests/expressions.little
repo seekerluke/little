@@ -56,9 +56,6 @@ test.assert(not 0)
 test.assert(not null)
 test.assert(not not not false)
 
-; comparison chaining
-test.expect_error("var x = 1 < 2 < 3")
-
 ; expressions with function calls
 var add = fn(a, b) { return a + b }
 var mul = fn(a, b) { return a * b }

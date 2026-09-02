@@ -43,6 +43,5 @@ test.assert(test.assert isnt test.expect_error)
 
 var p1 = test.make_ptr()
 var p2 = test.make_ptr()
-io.print(p1, p2)
 test.assert(p1 is p1)
 test.assert(p1 isnt p2)
