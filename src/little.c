@@ -305,7 +305,7 @@ static uint8_t faststrcmp(const char *a, uint64_t a_len, const char *b,
   return 1;
 }
 
-uint8_t lt_equals(lt_Value a, lt_Value b) {
+uint8_t lt_equals(lt_VM *vm, lt_Value a, lt_Value b) {
   if (LT_IS_NUMBER(a) || LT_IS_NUMBER(b))
     return LT_IS_NUMBER(a) && LT_IS_NUMBER(b) &&
            lt_get_number(a) == lt_get_number(b);
@@ -332,9 +332,10 @@ uint8_t lt_equals(lt_Value a, lt_Value b) {
     case LT_OBJECT_ARRAY:
     case LT_OBJECT_TABLE:
     case LT_OBJECT_NATIVEFN:
+    case LT_OBJECT_PTR:
       return obja == objb;
     default:
-      // TODO: replace default case with comparisons between array and ptr
+      lt_runtime_error(vm, "Unknown type for equality check");
       break;
     }
   } break;
@@ -1608,7 +1609,7 @@ uint16_t _lt_exec(lt_VM *vm, lt_Value callable, uint8_t argc) {
     return n_return;
   } break;
   default:
-    // not a callable object
+    lt_runtime_error(vm, "Attempting to call an object which is not callable");
     break;
   }
 
@@ -1719,10 +1720,10 @@ inst_loop:
   }
 
   case LT_OP_EQ:
-    TOP = (lt_equals(POP(), TOP) ? LT_VALUE_TRUE : LT_VALUE_FALSE);
+    TOP = (lt_equals(vm, POP(), TOP) ? LT_VALUE_TRUE : LT_VALUE_FALSE);
     NEXT;
   case LT_OP_NEQ:
-    TOP = (lt_equals(POP(), TOP) ? LT_VALUE_FALSE : LT_VALUE_TRUE);
+    TOP = (lt_equals(vm, POP(), TOP) ? LT_VALUE_FALSE : LT_VALUE_TRUE);
     NEXT;
 
   case LT_OP_GT:
@@ -2387,7 +2388,7 @@ lt_TablePair *_lt_table_index(lt_VM *vm, lt_Value table, lt_Value key,
 
   for (uint32_t i = 0; i < buf->length; i++) {
     lt_TablePair *p = lt_buffer_at(buf, i);
-    if (lt_equals(p->key, key)) {
+    if (lt_equals(vm, p->key, key)) {
       return p;
     }
   }

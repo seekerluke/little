@@ -69,6 +69,15 @@ static uint8_t test_expect_error(lt_VM *vm, uint8_t argc) {
   return 0;
 }
 
+static uint8_t test_make_ptr(lt_VM *vm, uint8_t argc) {
+  (void)argc;
+  void *ptr = vm->alloc(sizeof(int));
+  // lt_make_ptr takes ownership of this pointer and garbage collects it later,
+  // no need to free it yourself
+  lt_push(vm, lt_make_ptr(vm, ptr));
+  return 1;
+}
+
 int main(void) {
   lt_VM *vm = lt_open(malloc, free, error);
   ltstd_open_all(vm);
@@ -78,6 +87,8 @@ int main(void) {
                lt_make_native(vm, test_assert));
   lt_table_set(vm, test_table, lt_make_string(vm, "expect_error"),
                lt_make_native(vm, test_expect_error));
+  lt_table_set(vm, test_table, lt_make_string(vm, "make_ptr"),
+               lt_make_native(vm, test_make_ptr));
   lt_table_set(vm, vm->global, lt_make_string(vm, "test"), test_table);
 
   std::vector<fs::path> files;

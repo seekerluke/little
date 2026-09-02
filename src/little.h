@@ -432,7 +432,7 @@ double lt_get_number(lt_Value v);
 lt_Value lt_make_string(lt_VM *vm, const char *string);
 const char *lt_get_string(lt_VM *vm, lt_Value value);
 
-uint8_t lt_equals(lt_Value a, lt_Value b);
+uint8_t lt_equals(lt_VM *vm, lt_Value a, lt_Value b);
 
 lt_Value lt_make_table(lt_VM *vm);
 lt_Value lt_table_set(lt_VM *vm, lt_Value table, lt_Value key, lt_Value val);

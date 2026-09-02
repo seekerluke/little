@@ -22,6 +22,8 @@ var upval = 0
 var c = fn() {
   upval = 10
 }
+var ptr = test.make_ptr()
+
 test.assert(string.typeof(null) is "null")
 test.assert(string.typeof(10) is "number")
 test.assert(string.typeof(true) is "boolean")
@@ -31,3 +33,4 @@ test.assert(string.typeof(c) is "closure")
 test.assert(string.typeof([]) is "array")
 test.assert(string.typeof({}) is "table")
 test.assert(string.typeof(string.typeof) is "native")
+test.assert(string.typeof(ptr) is "ptr")
