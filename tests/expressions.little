@@ -26,7 +26,7 @@ test.assert((10 - 6) / 3 is 1.3333333333333333)
 test.assert(((1 + 2) * (3 + 4)) is 21)
 test.assert((2 + 3) * (4 + 5) is 45)
 test.assert(((10 - 2) * (6 + 4)) / 2 is 40)
-test.assert((((1 + 1)))) is 2)
+test.assert((((1 + 1))) is 2)
 
 ; comparison operators in expressions
 test.assert(1 + 1 is 2)
@@ -151,10 +151,10 @@ var e = (a > 3) and (b < 30)
 test.assert(e is true)
 
 ; deep nesting
-test.assert(((((1 + 2))))) is 3)
-test.assert(((((2 * 3) + 1)))) is 7)
-test.assert((((((5 + 5) * 2) - 3)))) is 17)
-test.assert((((1 + 1) * ((2 + 2) * (3 + 3))))) is 36)
+test.assert(((((1 + 2)))) is 3)
+test.assert(((((2 * 3) + 1))) is 7)
+test.assert((((((5 + 5) * 2) - 3))) is 17)
+test.assert((((1 + 1) * ((2 + 2) * (3 + 3)))) is 36)
 
 ; long chained expression
 test.assert(1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 is 55)

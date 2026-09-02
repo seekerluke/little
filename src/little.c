@@ -1181,6 +1181,10 @@ lt_Token *_lt_parse_expression(lt_VM *vm, lt_Parser *p, lt_Token *start,
     } break;
 
     case LT_TOKEN_CLOSEPAREN: {
+      if (n_open == 0 && previous == NULL)
+        _lt_parse_error(
+            vm, p->tkn->module, current,
+            "Closing paren \")\" found without matching open paren \"(\"");
       if (n_open == 0)
         goto expr_end;
       NEXT();
