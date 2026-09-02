@@ -551,6 +551,8 @@ static uint8_t _lt_string_typeof(lt_VM *vm, uint8_t argc) {
     lt_push(vm, lt_make_string(vm, "native"));
   else if (LT_IS_PTR(val))
     lt_push(vm, lt_make_string(vm, "ptr"));
+  else
+    lt_push(vm, lt_make_string(vm, "unknown"));
   return 1;
 }
 

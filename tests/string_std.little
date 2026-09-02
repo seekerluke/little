@@ -12,6 +12,22 @@ test.assert(h is "hello world")
 var str_format = string.format("hello %s", "world")
 var int_format = string.format("hello %d", 10)
 var dbl_format = string.format("hello %f", 2.5)
+var hex_format = string.format("hello %x", 255)
 test.assert(str_format is "hello world")
 test.assert(int_format is "hello 10")
 test.assert(dbl_format is "hello 2.500000")
+test.assert(hex_format is "hello ff")
+
+var upval = 0
+var c = fn() {
+  upval = 10
+}
+test.assert(string.typeof(null) is "null")
+test.assert(string.typeof(10) is "number")
+test.assert(string.typeof(true) is "boolean")
+test.assert(string.typeof("mystring") is "string")
+test.assert(string.typeof(fn() {}) is "function")
+test.assert(string.typeof(c) is "closure")
+test.assert(string.typeof([]) is "array")
+test.assert(string.typeof({}) is "table")
+test.assert(string.typeof(string.typeof) is "native")
