@@ -340,7 +340,7 @@ typedef struct {
 
 typedef struct {
   uint8_t op;
-  int8_t arg;
+  int16_t arg;
 } lt_Op;
 
 typedef struct lt_Frame {
