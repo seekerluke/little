@@ -1,4 +1,20 @@
-io.print("print test")
+var upval = 0
+var c = fn() {
+  upval = 10
+}
+
+; NOTE: chunk is not being tested here
+io.print(1)
+io.print(null)
+io.print(true)
+io.print(false)
+io.print("mystring")
+io.print(c)
+io.print(fn() {})
+io.print({})
+io.print([])
+io.print(io.print)
+io.print(test.make_ptr())
 
 var t = io.clock()
 test.assert(t > 0)
