@@ -515,26 +515,31 @@ lt_Tokenizer lt_tokenize(lt_VM *vm, const char *source, const char *mod_name) {
 
           uint16_t length = (uint16_t)(current - start);
 
+          // clang-format off
 #define PUSH_STR_TOKEN(name, new_type)                                         \
-  if (faststrcmp(name, sizeof(name) - 1, start, length)) {                     \
-    lt_Token _t;                                                               \
-    _t.type = new_type;                                                        \
-    _t.line = line;                                                            \
-    _t.col = col;                                                              \
-    col += length;                                                             \
-    _t.idx = 0;                                                                \
-    lt_buffer_push(vm, &t.token_buffer, &_t);                                  \
-    found = 1;                                                                 \
-  }
+    if(faststrcmp(name, sizeof(name) - 1, start, length)) { \
+		lt_Token _t; _t.type = new_type; _t.line = line; _t.col = col; col += length; _t.idx = 0; \
+		lt_buffer_push(vm, &t.token_buffer, &_t); found = 1; }
 
           PUSH_STR_TOKEN("fn", LT_TOKEN_FN)
-          else PUSH_STR_TOKEN("var", LT_TOKEN_VAR) else PUSH_STR_TOKEN(
-              "if", LT_TOKEN_IF) else PUSH_STR_TOKEN("else", LT_TOKEN_ELSE) else PUSH_STR_TOKEN("elseif", LT_TOKEN_ELSEIF) else PUSH_STR_TOKEN("for",
-                                                                                                                                               LT_TOKEN_FOR) else PUSH_STR_TOKEN("in", LT_TOKEN_IN) else PUSH_STR_TOKEN("while", LT_TOKEN_WHILE) else PUSH_STR_TOKEN("break", LT_TOKEN_BREAK) else PUSH_STR_TOKEN("return",
-                                                                                                                                                                                                                                                                                                                  LT_TOKEN_RETURN) else PUSH_STR_TOKEN("is", LT_TOKEN_EQUALS) else PUSH_STR_TOKEN("isnt", LT_TOKEN_NOTEQUALS) else PUSH_STR_TOKEN("and", LT_TOKEN_AND) else PUSH_STR_TOKEN("or",
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           LT_TOKEN_OR) else PUSH_STR_TOKEN("not", LT_TOKEN_NOT) else PUSH_STR_TOKEN("true", LT_TOKEN_TRUE_LITERAL) else PUSH_STR_TOKEN("false",
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        LT_TOKEN_FALSE_LITERAL) else PUSH_STR_TOKEN("null",
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    LT_TOKEN_NULL_LITERAL)
+          else PUSH_STR_TOKEN("var", LT_TOKEN_VAR)
+          else PUSH_STR_TOKEN("if", LT_TOKEN_IF)
+          else PUSH_STR_TOKEN("else", LT_TOKEN_ELSE)
+          else PUSH_STR_TOKEN("elseif", LT_TOKEN_ELSEIF)
+          else PUSH_STR_TOKEN("for", LT_TOKEN_FOR)
+          else PUSH_STR_TOKEN("in", LT_TOKEN_IN)
+          else PUSH_STR_TOKEN("while", LT_TOKEN_WHILE)
+          else PUSH_STR_TOKEN("break", LT_TOKEN_BREAK)
+          else PUSH_STR_TOKEN("return", LT_TOKEN_RETURN)
+          else PUSH_STR_TOKEN("is", LT_TOKEN_EQUALS)
+          else PUSH_STR_TOKEN("isnt", LT_TOKEN_NOTEQUALS)
+          else PUSH_STR_TOKEN("and", LT_TOKEN_AND)
+          else PUSH_STR_TOKEN("or", LT_TOKEN_OR)
+          else PUSH_STR_TOKEN("not", LT_TOKEN_NOT)
+          else PUSH_STR_TOKEN("true", LT_TOKEN_TRUE_LITERAL)
+          else PUSH_STR_TOKEN("false", LT_TOKEN_FALSE_LITERAL)
+          else PUSH_STR_TOKEN("null", LT_TOKEN_NULL_LITERAL)
+              // clang-format on
 
               if (!found) {
             for (uint32_t i = 0; i < t.identifier_buffer.length; i++) {
