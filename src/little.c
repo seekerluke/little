@@ -1,5 +1,6 @@
 #include "little.h"
 
+#include <assert.h>
 #include <ctype.h>
 #include <setjmp.h>
 #include <stdio.h>
@@ -670,6 +671,8 @@ lt_Token *_lt_parse_expression(lt_VM *vm, lt_Parser *p, lt_Token *start,
 lt_Scope *_lt_parse_block(lt_VM *vm, lt_Parser *p, lt_Token *start,
                           lt_Buffer *dst, uint8_t expects_terminator,
                           uint8_t makes_scope, lt_Token **argnames) {
+  assert(start != NULL);
+
   if (makes_scope) {
     lt_Scope *new_scope = vm->alloc(sizeof(lt_Scope));
     new_scope->last = p->current;
@@ -688,7 +691,6 @@ lt_Scope *_lt_parse_block(lt_VM *vm, lt_Parser *p, lt_Token *start,
 
   lt_Token *current = start;
 
-#define PEEK() (current + 1)
 #define NEXT() (previous = current, current++)
 
   while (current->type != LT_TOKEN_END) {
@@ -947,7 +949,8 @@ uint8_t _lt_get_prec(lt_TokenType op) {
 lt_Token *_lt_parse_expression(lt_VM *vm, lt_Parser *p, lt_Token *start,
                                lt_AstNode **out) {
   uint8_t n_open = 0;
-  lt_Token *previous = 0;
+  static const lt_Token prev_dummy = { .type = LT_TOKEN_END };
+  lt_Token *previous = (lt_Token *)&prev_dummy;
   lt_Token *current = start;
 
   lt_Buffer result = lt_buffer_new(sizeof(lt_AstNode *));
@@ -967,8 +970,7 @@ lt_Token *_lt_parse_expression(lt_VM *vm, lt_Parser *p, lt_Token *start,
   }
 
 #define BREAK_ON_EXPR_BOUNDARY                                                 \
-  if (previous)                                                                \
-    switch (previous->type) {                                                  \
+  switch (previous->type) {                                                    \
     case LT_TOKEN_IDENTIFIER:                                                  \
     case LT_TOKEN_CLOSEBRACE:                                                  \
     case LT_TOKEN_CLOSEBRACKET:                                                \
@@ -977,7 +979,7 @@ lt_Token *_lt_parse_expression(lt_VM *vm, lt_Parser *p, lt_Token *start,
       goto expr_end;                                                           \
     default:                                                                   \
       break;                                                                   \
-    }
+  }
 
   while (current->type != LT_TOKEN_END) {
     switch (current->type) {
@@ -995,19 +997,7 @@ lt_Token *_lt_parse_expression(lt_VM *vm, lt_Parser *p, lt_Token *start,
       lt_buffer_push(vm, &result, &ident);
     } break;
     case LT_TOKEN_OPENBRACKET: {
-      uint8_t is_index = previous != NULL;
-      if (previous)
-        switch (previous->type) {
-        case LT_TOKEN_CLOSEBRACE:
-        case LT_TOKEN_CLOSEBRACKET:
-        case LT_TOKEN_CLOSEPAREN:
-        case LT_TOKEN_IDENTIFIER:
-        case LT_TOKEN_FN:
-          is_index = 1; // true
-          break;
-        default:
-          break;
-        }
+      uint8_t is_index = current != start;
 
       if (is_index) {
         NEXT(); // eat bracket
@@ -1048,16 +1038,15 @@ lt_Token *_lt_parse_expression(lt_VM *vm, lt_Parser *p, lt_Token *start,
     } break;
     case LT_TOKEN_PERIOD: {
       uint8_t allowed = 0;
-      if (previous)
-        switch (previous->type) {
-        case LT_TOKEN_CLOSEBRACE:
-        case LT_TOKEN_CLOSEBRACKET:
-        case LT_TOKEN_CLOSEPAREN:
-        case LT_TOKEN_IDENTIFIER:
-          allowed = 1;
-        default:
-          break;
-        }
+      switch (previous->type) {
+      case LT_TOKEN_CLOSEBRACE:
+      case LT_TOKEN_CLOSEBRACKET:
+      case LT_TOKEN_CLOSEPAREN:
+      case LT_TOKEN_IDENTIFIER:
+        allowed = 1;
+      default:
+        break;
+      }
 
       if (!allowed)
         goto expr_end;
@@ -1110,16 +1099,15 @@ lt_Token *_lt_parse_expression(lt_VM *vm, lt_Parser *p, lt_Token *start,
       if (optype == LT_TOKEN_MINUS) {
         optype = LT_TOKEN_NEGATE;
 
-        if (previous)
-          switch (previous->type) {
-          case LT_TOKEN_ANY_LITERAL:
-          case LT_TOKEN_IDENTIFIER:
-          case LT_TOKEN_CLOSEPAREN:
-          case LT_TOKEN_CLOSEBRACKET:
-            optype = LT_TOKEN_MINUS;
-          default:
-            break;
-          }
+        switch (previous->type) {
+        case LT_TOKEN_ANY_LITERAL:
+        case LT_TOKEN_IDENTIFIER:
+        case LT_TOKEN_CLOSEPAREN:
+        case LT_TOKEN_CLOSEBRACKET:
+          optype = LT_TOKEN_MINUS;
+        default:
+          break;
+        }
       }
 
       while (operator_stack.length > 0) {
@@ -1139,44 +1127,42 @@ lt_Token *_lt_parse_expression(lt_VM *vm, lt_Parser *p, lt_Token *start,
     } break;
 
     case LT_TOKEN_OPENPAREN: {
-      if (previous) {
-        switch (previous->type) {
-        case LT_TOKEN_CLOSEPAREN:
-        case LT_TOKEN_CLOSEBRACE:
-        case LT_TOKEN_IDENTIFIER:
-        case LT_TOKEN_CLOSEBRACKET: {
-          NEXT();
-          lt_AstNode *callee = *(lt_AstNode **)lt_buffer_last(&result);
-          lt_buffer_pop(&result);
+      uint8_t is_call = 0;
+      switch (previous->type) {
+      case LT_TOKEN_CLOSEPAREN:
+      case LT_TOKEN_CLOSEBRACE:
+      case LT_TOKEN_IDENTIFIER:
+      case LT_TOKEN_CLOSEBRACKET:
+        is_call = 1;
+      default:
+        break;
+      }
 
-          lt_AstNode *call =
-              _lt_get_node_of_type(vm, current, p, LT_AST_NODE_CALL);
-          uint8_t nargs = 0;
+      if (is_call) {
+        NEXT();
+        lt_AstNode *callee = *(lt_AstNode **)lt_buffer_last(&result);
+        lt_buffer_pop(&result);
 
-          while (current->type != LT_TOKEN_CLOSEPAREN) {
-            if (current->type == LT_TOKEN_END)
-              _lt_parse_error(vm, p->tkn->module, current,
-                              "Unexpected end of file in expression. (Unclosed "
-                              "parenthesis?)");
-            if (current->type == LT_TOKEN_COMMA)
-              NEXT();
+        lt_AstNode *call =
+            _lt_get_node_of_type(vm, current, p, LT_AST_NODE_CALL);
+        uint8_t nargs = 0;
 
-            lt_AstNode *arg = 0;
-            current = _lt_parse_expression(vm, p, current, &arg);
-            call->u.call.args[nargs++] = arg;
-          }
+        while (current->type != LT_TOKEN_CLOSEPAREN) {
+          if (current->type == LT_TOKEN_END)
+            _lt_parse_error(vm, p->tkn->module, current,
+                            "Unexpected end of file in expression. (Unclosed "
+                            "parenthesis?)");
+          if (current->type == LT_TOKEN_COMMA)
+            NEXT();
 
-          call->u.call.callee = callee;
-          lt_buffer_push(vm, &result, &call);
-          NEXT();
-        } break;
-        default:
-          // grouping paren
-          n_open++;
-          lt_buffer_push(vm, &operator_stack, &current->type);
-          NEXT();
-          break;
+          lt_AstNode *arg = 0;
+          current = _lt_parse_expression(vm, p, current, &arg);
+          call->u.call.args[nargs++] = arg;
         }
+
+        call->u.call.callee = callee;
+        lt_buffer_push(vm, &result, &call);
+        NEXT();
       } else {
         // grouping paren
         n_open++;
@@ -1186,7 +1172,7 @@ lt_Token *_lt_parse_expression(lt_VM *vm, lt_Parser *p, lt_Token *start,
     } break;
 
     case LT_TOKEN_CLOSEPAREN: {
-      if (n_open == 0 && previous == NULL)
+      if (n_open == 0 && current == start)
         _lt_parse_error(
             vm, p->tkn->module, current,
             "Closing paren \")\" found without matching open paren \"(\"");
@@ -1284,7 +1270,7 @@ lt_Token *_lt_parse_expression(lt_VM *vm, lt_Parser *p, lt_Token *start,
     } break;
 
     default: {
-      if (previous)
+      if (current != start)
         goto expr_end;
       else
         _lt_parse_error(vm, p->tkn->module, current, "Malformed expression!");
