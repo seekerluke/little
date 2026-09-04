@@ -912,7 +912,6 @@ end_block:
 
 uint8_t _lt_get_prec(lt_TokenType op) {
   switch (op) {
-  case LT_TOKEN_NOT:
   case LT_TOKEN_NEGATE:
     return 5;
   case LT_TOKEN_MULTIPLY:
@@ -930,6 +929,7 @@ uint8_t _lt_get_prec(lt_TokenType op) {
     return 2;
   case LT_TOKEN_AND:
   case LT_TOKEN_OR:
+  case LT_TOKEN_NOT:
     return 1;
   default:
     break;
@@ -1121,8 +1121,7 @@ lt_Token *_lt_parse_expression(lt_VM *vm, lt_Parser *p, lt_Token *start,
       }
 
       while (operator_stack.length > 0) {
-        lt_TokenType shunted =
-            *(lt_TokenType *)lt_buffer_last(&operator_stack);
+        lt_TokenType shunted = *(lt_TokenType *)lt_buffer_last(&operator_stack);
         if (_lt_get_prec(shunted) > _lt_get_prec(optype) ||
             (_lt_get_prec(shunted) == _lt_get_prec(optype) &&
              _lt_is_left_assoc(optype))) {
