@@ -938,6 +938,16 @@ uint8_t _lt_get_prec(lt_TokenType op) {
   return 0;
 }
 
+uint8_t _lt_is_left_assoc(lt_TokenType op) {
+  switch (op) {
+  case LT_TOKEN_NOT:
+  case LT_TOKEN_NEGATE:
+    return 0;
+  default:
+    return 1;
+  }
+}
+
 #define LT_TOKEN_ANY_LITERAL                                                   \
   LT_TOKEN_NULL_LITERAL:                                                       \
   case LT_TOKEN_FALSE_LITERAL:                                                 \
@@ -949,7 +959,7 @@ uint8_t _lt_get_prec(lt_TokenType op) {
 lt_Token *_lt_parse_expression(lt_VM *vm, lt_Parser *p, lt_Token *start,
                                lt_AstNode **out) {
   uint8_t n_open = 0;
-  static const lt_Token prev_dummy = { .type = LT_TOKEN_END };
+  static const lt_Token prev_dummy = {.type = LT_TOKEN_END};
   lt_Token *previous = (lt_Token *)&prev_dummy;
   lt_Token *current = start;
 
@@ -971,14 +981,14 @@ lt_Token *_lt_parse_expression(lt_VM *vm, lt_Parser *p, lt_Token *start,
 
 #define BREAK_ON_EXPR_BOUNDARY                                                 \
   switch (previous->type) {                                                    \
-    case LT_TOKEN_IDENTIFIER:                                                  \
-    case LT_TOKEN_CLOSEBRACE:                                                  \
-    case LT_TOKEN_CLOSEBRACKET:                                                \
-    case LT_TOKEN_CLOSEPAREN:                                                  \
-    case LT_TOKEN_ANY_LITERAL:                                                 \
-      goto expr_end;                                                           \
-    default:                                                                   \
-      break;                                                                   \
+  case LT_TOKEN_IDENTIFIER:                                                    \
+  case LT_TOKEN_CLOSEBRACE:                                                    \
+  case LT_TOKEN_CLOSEBRACKET:                                                  \
+  case LT_TOKEN_CLOSEPAREN:                                                    \
+  case LT_TOKEN_ANY_LITERAL:                                                   \
+    goto expr_end;                                                             \
+  default:                                                                     \
+    break;                                                                     \
   }
 
   while (current->type != LT_TOKEN_END) {
@@ -1111,10 +1121,11 @@ lt_Token *_lt_parse_expression(lt_VM *vm, lt_Parser *p, lt_Token *start,
       }
 
       while (operator_stack.length > 0) {
-        if (_lt_get_prec(*(lt_TokenType *)lt_buffer_last(&operator_stack)) >
-            _lt_get_prec(optype)) {
-          lt_TokenType shunted =
-              *(lt_TokenType *)lt_buffer_last(&operator_stack);
+        lt_TokenType shunted =
+            *(lt_TokenType *)lt_buffer_last(&operator_stack);
+        if (_lt_get_prec(shunted) > _lt_get_prec(optype) ||
+            (_lt_get_prec(shunted) == _lt_get_prec(optype) &&
+             _lt_is_left_assoc(optype))) {
           lt_buffer_pop(&operator_stack);
 
           PUSH_EXPR_FROM_OP(shunted);
