@@ -11,6 +11,9 @@ test.expect_error("1 * 2 -")
 test.expect_error("not")
 test.expect_error("1 and")
 
+; elseif can't be after an else block
+test.expect_error("if false {} else {} elseif false {}")
+
 ; runtime errors, arithmetic on non-numbers
 test.expect_error("1 + null")
 test.expect_error("null - 1")

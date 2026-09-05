@@ -356,6 +356,9 @@ lt_Tokenizer lt_tokenize(lt_VM *vm, const char *source, uint32_t source_len,
   t.identifier_buffer = lt_buffer_new(sizeof(lt_Identifier));
   t.literal_buffer = lt_buffer_new(sizeof(lt_Literal));
 
+  jmp_buf prev_error_buf;
+  memcpy(prev_error_buf, vm->error_buf, sizeof(jmp_buf));
+
   if (!setjmp(*(jmp_buf *)vm->error_buf)) {
     const char *current = source;
     const char *end = source + source_len;
@@ -605,6 +608,7 @@ lt_Tokenizer lt_tokenize(lt_VM *vm, const char *source, uint32_t source_len,
 
     t.is_valid = 1;
   }
+  memcpy(vm->error_buf, prev_error_buf, sizeof(jmp_buf));
   return t;
 }
 
@@ -1380,6 +1384,9 @@ lt_Parser lt_parse(lt_VM *vm, lt_Tokenizer *tkn) {
   lt_Parser p;
   p.is_valid = 0;
 
+  jmp_buf prev_error_buf;
+  memcpy(prev_error_buf, vm->error_buf, sizeof(jmp_buf));
+
   if (!setjmp(*(jmp_buf *)vm->error_buf)) {
     p.current = NULL;
     p.tkn = tkn;
@@ -1394,6 +1401,7 @@ lt_Parser lt_parse(lt_VM *vm, lt_Tokenizer *tkn) {
     p.root->u.chunk.scope = file_scope;
     p.is_valid = 1;
   }
+  memcpy(vm->error_buf, prev_error_buf, sizeof(jmp_buf));
 
   return p;
 }
@@ -1612,6 +1620,7 @@ uint16_t lt_exec(lt_VM *vm, lt_Value callable, uint8_t argc) {
   // execution, keep a copy of the state it was in before modifying it.
   // this can happen in tests using test.expect_error, or io.require in normal
   // code. basically anything that runs lt_dostring in a native function.
+  // same logic is being applied to lt_tokenize, lt_parse, and lt_compile.
   jmp_buf prev_error_buf;
   memcpy(prev_error_buf, vm->error_buf, sizeof(jmp_buf));
 
@@ -2366,6 +2375,14 @@ static void _lt_compile_body(lt_VM *vm, lt_Parser *p, const char *name,
 }
 
 lt_Value lt_compile(lt_VM *vm, lt_Parser *p) {
+  jmp_buf prev_error_buf;
+  memcpy(prev_error_buf, vm->error_buf, sizeof(jmp_buf));
+
+  if (setjmp(*(jmp_buf *)vm->error_buf)) {
+    memcpy(vm->error_buf, prev_error_buf, sizeof(jmp_buf));
+    return LT_VALUE_NULL;
+  }
+
   lt_Object *chunk = lt_allocate(vm, LT_OBJECT_CHUNK);
   lt_nocollect(vm, chunk);
 
@@ -2402,6 +2419,7 @@ lt_Value lt_compile(lt_VM *vm, lt_Parser *p) {
       p->root->u.chunk.scope->locals.length;
 
   lt_Value as_val = LT_VALUE_OBJECT(chunk);
+  memcpy(vm->error_buf, prev_error_buf, sizeof(jmp_buf));
   return as_val;
 }
 

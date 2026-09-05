@@ -50,6 +50,12 @@ int main(int argc, char **argv) {
   // ltdev_print_ast(&p);
 
   lt_Value c = lt_compile(vm, &p);
+  if (c == LT_VALUE_NULL) {
+    printf("Compile failed\n");
+    lt_free_parser(vm, &p);
+    lt_free_tokenizer(vm, &tok);
+    return 1;
+  }
 
   // printf("Compiled output:\n");
   // ltdev_print_compiled(vm, c);
