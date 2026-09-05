@@ -1994,7 +1994,7 @@ static void _lt_compile_node(lt_VM *vm, lt_Parser *p, const char *name,
   } break;
 
   case LT_AST_NODE_ARRAY: {
-    uint16_t size = node->u.table.keys.length;
+    uint16_t size = node->u.array.values.length;
 
     for (int i = size - 1; i >= 0; --i) {
       lt_AstNode *value =
