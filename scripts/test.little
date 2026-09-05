@@ -1,1 +1,2 @@
-"thing" + [0]
+var arr = [1, 2, 3]
+arr["thing"] = 0

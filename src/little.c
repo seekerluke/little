@@ -1708,10 +1708,14 @@ inst_loop:
     lt_Value value = POP();
     lt_Value key = POP();
     lt_Value t = POP();
-    if (LT_IS_TABLE(t))
+    if (LT_IS_TABLE(t)) {
       lt_table_set(vm, t, key, value);
-    else if (LT_IS_ARRAY(t))
+    } else if (LT_IS_ARRAY(t)) {
+      if (!LT_IS_NUMBER(key))
+        lt_runtime_error(
+            vm, "Non-number value cannot be used as an index on an array");
       *lt_array_at(t, (uint32_t)lt_get_number(key)) = value;
+    }
   }
     NEXT;
 
