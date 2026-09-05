@@ -43,6 +43,9 @@ char *ltstd_tostring(lt_VM *vm, lt_Value val) {
                      (uintptr_t)LT_GET_OBJECT(obj->u.closure.function),
                      obj->u.closure.captures.length);
       break;
+    case LT_OBJECT_UPVAL:
+      len = snprintf(scratch, 256, "upval 0x%lx", (uintptr_t)obj);
+      break;
     case LT_OBJECT_FN:
       len = snprintf(scratch, 256, "function 0x%lx", (uintptr_t)obj);
       break;

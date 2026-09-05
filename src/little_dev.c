@@ -83,11 +83,11 @@ static const char *const ast_node_names[] = {
 // is not exposed via little.h). If you add/remove/reorder an op there, update
 // this table to match or the disassembler will print wrong names.
 static const char *const opcode_names[] = {
-    "NOP",   "PUSH",   "DUP",     "PUSHS", "PUSHC", "PUSHN", "PUSHT",
-    "PUSHF", "ADD",    "SUB",     "MUL",   "DIV",   "NEG",   "EQ",
-    "NEQ",   "GT",     "GTE",     "AND",   "OR",    "NOT",   "LOAD",
-    "STORE", "LOADUP", "STOREUP", "CLOSE", "CALL",  "MAKET", "MAKEA",
-    "SETT",  "GETT",   "GETG",    "JMP",   "JMPC",  "JMPN",  "RET",
+    "NOP",     "PUSH",  "DUP",  "PUSHS", "PUSHC", "PUSHN", "PUSHT",  "PUSHF",
+    "ADD",     "SUB",   "MUL",  "DIV",   "NEG",   "EQ",    "NEQ",    "GT",
+    "GTE",     "AND",   "OR",   "NOT",   "LOAD",  "STORE", "LOADUP", "STOREUP",
+    "MKUPVAL", "CLOSE", "CALL", "MAKET", "MAKEA", "SETT",  "GETT",   "GETG",
+    "JMP",     "JMPC",  "JMPN", "RET",
 };
 
 const char *ltdev_token_name(lt_TokenType type) {
@@ -354,13 +354,14 @@ static void print_code(lt_VM *vm, lt_Buffer *code, lt_Buffer *constants,
     case 21: // LT_OP_STORE
     case 22: // LT_OP_LOADUP
     case 23: // LT_OP_STOREUP
-    case 24: // LT_OP_CLOSE
-    case 25: // LT_OP_CALL
-    case 26: // LT_OP_MAKET
-    case 27: // LT_OP_MAKEA
-    case 31: // LT_OP_JMP
-    case 32: // LT_OP_JMPC
-    case 33: // LT_OP_JMPN
+    case 24: // LT_OP_MKUPVAL
+    case 25: // LT_OP_CLOSE
+    case 26: // LT_OP_CALL
+    case 27: // LT_OP_MAKET
+    case 28: // LT_OP_MAKEA
+    case 32: // LT_OP_JMP
+    case 33: // LT_OP_JMPC
+    case 34: // LT_OP_JMPN
       printf("  %d", (int8_t)op->arg);
       break;
     default:

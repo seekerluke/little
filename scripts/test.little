@@ -1,1 +1,6 @@
-if false {} else {} elseif false {}
+var num = 10
+var thing = fn() {
+  num = num + 1
+  io.print(num)
+}
+thing()

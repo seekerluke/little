@@ -292,6 +292,7 @@ typedef enum {
   LT_OBJECT_CHUNK,
   LT_OBJECT_FN,
   LT_OBJECT_CLOSURE,
+  LT_OBJECT_UPVAL,
   LT_OBJECT_TABLE,
   LT_OBJECT_ARRAY,
   LT_OBJECT_NATIVEFN,
@@ -329,6 +330,10 @@ typedef struct {
       lt_Value function;
       lt_Buffer captures;
     } closure;
+
+    struct {
+      lt_Value value;
+    } upval;
 
     lt_Table table;
     lt_Buffer array;

@@ -21,3 +21,21 @@ var apply = fn(f, a, b) {
   return f(a, b)
 }
 test.assert(apply(add, 100, 200) is 300)
+
+; recursion
+var factorial = fn(n) {
+  if n is 1 { return 1 }
+  return n * factorial(n - 1)
+}
+test.assert(factorial(5))
+
+var even = fn(n) {
+  if n is 0 { return true }
+  return odd(n - 1)
+}
+var odd = fn(n) {
+  if n is 0 { return false }
+  return even(n - 1)
+}
+test.assert(even(10))
+test.assert(odd(7))

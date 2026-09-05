@@ -46,6 +46,7 @@ typedef enum {
   LT_OP_STORE,
   LT_OP_LOADUP,
   LT_OP_STOREUP,
+  LT_OP_MKUPVAL,
 
   LT_OP_CLOSE,
   LT_OP_CALL,
@@ -329,6 +330,7 @@ uint8_t lt_equals(lt_VM *vm, lt_Value a, lt_Value b) {
     switch (obja->type) {
     case LT_OBJECT_CHUNK:
     case LT_OBJECT_CLOSURE:
+    case LT_OBJECT_UPVAL:
     case LT_OBJECT_FN:
     case LT_OBJECT_ARRAY:
     case LT_OBJECT_TABLE:
@@ -1454,6 +1456,9 @@ void lt_free(lt_VM *vm, uint32_t heapidx) {
   case LT_OBJECT_CLOSURE: {
     lt_buffer_destroy(vm, &obj->u.closure.captures);
   } break;
+  case LT_OBJECT_UPVAL:
+    // holds an lt_Value, nothing to free
+    break;
   case LT_OBJECT_FN: {
     lt_buffer_destroy(vm, &obj->u.fn.code);
     lt_buffer_destroy(vm, &obj->u.fn.constants);
@@ -1515,6 +1520,9 @@ void lt_sweep(lt_VM *vm, lt_Object *obj) {
     for (uint32_t i = 0; i < obj->u.closure.captures.length; ++i) {
       lt_sweep_v(vm, *(lt_Value *)lt_buffer_at(&obj->u.closure.captures, i));
     }
+  } break;
+  case LT_OBJECT_UPVAL: {
+    lt_sweep_v(vm, obj->u.upval.value);
   } break;
   case LT_OBJECT_FN: {
     for (uint32_t i = 0; i < obj->u.fn.constants.length; ++i) {
@@ -1592,7 +1600,11 @@ void lt_close(lt_VM *vm, uint8_t count) {
   closure->u.closure.captures = lt_buffer_new(sizeof(lt_Value));
   for (int i = 0; i < count; i++) {
     lt_Value v = lt_pop(vm);
-    lt_buffer_push(vm, &closure->u.closure.captures, &v);
+    lt_Object *cell = lt_allocate(vm, LT_OBJECT_UPVAL);
+    lt_Value cellval;
+    cell->u.upval.value = v;
+    cellval = LT_VALUE_OBJECT(cell);
+    lt_buffer_push(vm, &closure->u.closure.captures, &cellval);
   }
   closure->u.closure.function = lt_pop(vm);
   lt_push(vm, LT_VALUE_OBJECT(closure));
@@ -1601,13 +1613,15 @@ void lt_close(lt_VM *vm, uint8_t count) {
 lt_Value lt_getupval(lt_VM *vm, uint8_t idx) {
   if (vm->current->upvals == NULL)
     return LT_VALUE_NULL;
-  return *(lt_Value *)lt_buffer_at(vm->current->upvals, idx);
+  return LT_GET_OBJECT(*(lt_Value *)lt_buffer_at(vm->current->upvals, idx))
+      ->u.upval.value;
 }
 
 void lt_setupval(lt_VM *vm, uint8_t idx, lt_Value val) {
   if (vm->current->upvals == NULL)
     return;
-  *(lt_Value *)lt_buffer_at(vm->current->upvals, idx) = val;
+  LT_GET_OBJECT(*(lt_Value *)lt_buffer_at(vm->current->upvals, idx))
+      ->u.upval.value = val;
 }
 
 uint16_t _lt_exec(lt_VM *vm, lt_Value callable, uint8_t argc);
@@ -1883,18 +1897,42 @@ inst_loop:
     TOP = (LT_IS_TRUTHY(TOP) ? LT_VALUE_FALSE : LT_VALUE_TRUE);
     NEXT;
 
-  case LT_OP_LOAD:
-    PUSH(local_start[ip->arg]);
+  case LT_OP_LOAD: {
+    lt_Value v = local_start[ip->arg];
+    if (LT_IS_OBJECT(v) && LT_GET_OBJECT(v)->type == LT_OBJECT_UPVAL)
+      v = LT_GET_OBJECT(v)->u.upval.value;
+    PUSH(v);
+  }
     NEXT;
-  case LT_OP_STORE:
-    local_start[ip->arg] = POP();
+  case LT_OP_STORE: {
+    lt_Value *slot = &local_start[ip->arg];
+    lt_Value v = POP();
+    if (LT_IS_OBJECT(*slot) && LT_GET_OBJECT(*slot)->type == LT_OBJECT_UPVAL)
+      LT_GET_OBJECT(*slot)->u.upval.value = v;
+    else
+      *slot = v;
+  }
     NEXT;
 
   case LT_OP_LOADUP:
-    PUSH(*(lt_Value *)lt_buffer_at(frame->upvals, ip->arg));
+    PUSH(LT_GET_OBJECT(*(lt_Value *)lt_buffer_at(frame->upvals, ip->arg))
+             ->u.upval.value);
     NEXT;
   case LT_OP_STOREUP:
-    *(lt_Value *)lt_buffer_at(frame->upvals, ip->arg) = POP();
+    LT_GET_OBJECT(*(lt_Value *)lt_buffer_at(frame->upvals, ip->arg))
+        ->u.upval.value = POP();
+    NEXT;
+  case LT_OP_MKUPVAL: {
+    lt_Value *slot = &local_start[ip->arg];
+    if (LT_IS_OBJECT(*slot) && LT_GET_OBJECT(*slot)->type == LT_OBJECT_UPVAL) {
+      PUSH(*slot);
+    } else {
+      lt_Object *cell = lt_allocate(vm, LT_OBJECT_UPVAL);
+      cell->u.upval.value = *slot;
+      *slot = LT_VALUE_OBJECT(cell);
+      PUSH(LT_VALUE_OBJECT(cell));
+    }
+  }
     NEXT;
 
   case LT_OP_CLOSE: {
@@ -2222,7 +2260,7 @@ static void _lt_compile_node(lt_VM *vm, lt_Parser *p, const char *name,
         if ((idx & UPVAL_BIT) == UPVAL_BIT)
           OPARG(LOADUP, idx & 0xFFFF)
         else
-          OPARG(LOAD, idx & 0xFFFF);
+          OPARG(MKUPVAL, idx & 0xFFFF);
       }
 
       OPARG(CLOSE, upvals->length);
