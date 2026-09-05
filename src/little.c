@@ -1324,8 +1324,14 @@ expr_end:
   for (uint32_t i = 0; i < result.length; i++) {
     lt_AstNode *current = *(lt_AstNode **)lt_buffer_at(&result, i);
     if (current->type == LT_AST_NODE_BINARYOP) {
-      assert(value_stack.length > 0 &&
-             "Attempting to parse an operator before any values are pushed");
+      if (value_stack.length < 2) {
+        const lt_Token missing = {.type = LT_TOKEN_END,
+                                  .line = current->loc.line,
+                                  .col = current->loc.col,
+                                  .idx = 0};
+        _lt_parse_error(vm, p->tkn->module, (lt_Token *)&missing,
+                        "Malformed binary expression");
+      }
       lt_AstNode *right = *(lt_AstNode **)lt_buffer_last(&value_stack);
       lt_buffer_pop(&value_stack);
       lt_AstNode *left = *(lt_AstNode **)lt_buffer_last(&value_stack);
@@ -1344,8 +1350,14 @@ expr_end:
         break;
       }
     } else if (current->type == LT_AST_NODE_UNARYOP) {
-      assert(value_stack.length > 0 &&
-             "Attempting to parse an operator before any values are pushed");
+      if (value_stack.length < 1) {
+        const lt_Token missing = {.type = LT_TOKEN_END,
+                                  .line = current->loc.line,
+                                  .col = current->loc.col,
+                                  .idx = 0};
+        _lt_parse_error(vm, p->tkn->module, (lt_Token *)&missing,
+                        "Malformed unary expression");
+      }
       lt_AstNode *right = *(lt_AstNode **)lt_buffer_last(&value_stack);
       lt_buffer_pop(&value_stack);
       current->u.unary_op.expr = right;
