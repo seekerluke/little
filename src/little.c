@@ -1730,7 +1730,11 @@ inst_loop:
     TOP = (lt_make_number(VALTONUM(POP()) * VALTONUM(TOP)));
     NEXT;
   case LT_OP_DIV: {
-    TOP = (lt_make_number(VALTONUM(POP()) / VALTONUM(TOP)));
+    double lhs = VALTONUM(POP());
+    double rhs = VALTONUM(TOP);
+    if (rhs == 0)
+      lt_runtime_error(vm, "Divide by zero");
+    TOP = (lt_make_number(lhs / rhs));
     NEXT;
   }
 

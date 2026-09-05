@@ -1,3 +1,1 @@
-; test.assert((((1 + 1))) is 2)
-
-io.print((((1 + 1))) is 2)
+io.print(10 / 0)
