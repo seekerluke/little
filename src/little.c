@@ -105,7 +105,7 @@ static uint8_t lt_buffer_push(lt_VM *vm, lt_Buffer *buf, void *element) {
 
     if (buf->data != NULL) {
       memcpy(new_buffer, buf->data, buf->element_size * buf->capacity);
-      free(buf->data);
+      vm->free(buf->data);
     }
 
     buf->data = new_buffer;
@@ -1411,7 +1411,7 @@ lt_VM *lt_open(lt_AllocFn alloc, lt_FreeFn free, lt_ErrorFn error) {
   vm->heap = lt_buffer_new(sizeof(lt_Object *));
   vm->keepalive = lt_buffer_new(sizeof(lt_Object *));
 
-  vm->error_buf = malloc(sizeof(jmp_buf));
+  vm->error_buf = vm->alloc(sizeof(jmp_buf));
   vm->generate_debug = 1;
 
   vm->global = LT_VALUE_OBJECT(lt_allocate(vm, LT_OBJECT_TABLE));
