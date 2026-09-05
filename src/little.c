@@ -1007,7 +1007,16 @@ lt_Token *_lt_parse_expression(lt_VM *vm, lt_Parser *p, lt_Token *start,
       lt_buffer_push(vm, &result, &ident);
     } break;
     case LT_TOKEN_OPENBRACKET: {
-      uint8_t is_index = current != start;
+      uint8_t is_index = 0;
+      switch (previous->type) {
+      case LT_TOKEN_IDENTIFIER:
+      case LT_TOKEN_ANY_LITERAL:
+      case LT_TOKEN_CLOSEPAREN:
+      case LT_TOKEN_CLOSEBRACKET:
+        is_index = 1;
+      default:
+        break;
+      }
 
       if (is_index) {
         NEXT(); // eat bracket
