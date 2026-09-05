@@ -22,14 +22,14 @@ int main(int argc, char **argv) {
     return 0;
   }
   static char text[1 << 20];
-  fread(text, 1, sizeof(text), fp);
+  size_t text_len = fread(text, 1, sizeof(text), fp);
   fclose(fp);
 
   // Init VM and run program
   lt_VM *vm = lt_open(malloc, free, error);
   ltstd_open_all(vm);
 
-  lt_Tokenizer tok = lt_tokenize(vm, text, "module");
+  lt_Tokenizer tok = lt_tokenize(vm, text, (uint32_t)text_len, "module");
   if (!tok.is_valid) {
     printf("Tokeniser failed\n");
     lt_free_tokenizer(vm, &tok);

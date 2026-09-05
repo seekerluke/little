@@ -345,17 +345,20 @@ uint8_t lt_equals(lt_VM *vm, lt_Value a, lt_Value b) {
   return 0;
 }
 
-lt_Tokenizer lt_tokenize(lt_VM *vm, const char *source, const char *mod_name) {
+lt_Tokenizer lt_tokenize(lt_VM *vm, const char *source, uint32_t source_len,
+                         const char *mod_name) {
   lt_Tokenizer t;
   t.module = mod_name;
   t.is_valid = 0;
   t.source = source;
+  t.source_len = source_len;
   t.token_buffer = lt_buffer_new(sizeof(lt_Token));
   t.identifier_buffer = lt_buffer_new(sizeof(lt_Identifier));
   t.literal_buffer = lt_buffer_new(sizeof(lt_Literal));
 
   if (!setjmp(*(jmp_buf *)vm->error_buf)) {
     const char *current = source;
+    const char *end = source + source_len;
     uint16_t line = 1, col = 0;
 
 #define PUSH_TOKEN(new_type)                                                   \
@@ -370,7 +373,7 @@ lt_Tokenizer lt_tokenize(lt_VM *vm, const char *source, const char *mod_name) {
     found = 1;                                                                 \
   };
 
-    while (*current) {
+    while (current < end) {
       uint8_t found = 0;
       switch (*current) {
       case ' ':
@@ -393,10 +396,13 @@ lt_Tokenizer lt_tokenize(lt_VM *vm, const char *source, const char *mod_name) {
         found = 1;
         break;
       case ';': {
-        while (*current++ != '\n')
-          ;
-        col = 1;
-        line++;
+        while (current < end && *current != '\n')
+          current++;
+        if (current < end) {
+          col = 1;
+          line++;
+          current++;
+        }
         found = 1;
       } break;
       case '.':
@@ -431,26 +437,31 @@ lt_Tokenizer lt_tokenize(lt_VM *vm, const char *source, const char *mod_name) {
 
       if (!found) {
         if (*current == '>') {
-          if (*(current + 1) == '=') {
+          if (current + 1 < end && *(current + 1) == '=') {
             current++;
             PUSH_TOKEN(LT_TOKEN_GTE);
           } else
             PUSH_TOKEN(LT_TOKEN_GT);
         } else if (*current == '<') {
-          if (*(current + 1) == '=') {
+          if (current + 1 < end && *(current + 1) == '=') {
             current++;
             PUSH_TOKEN(LT_TOKEN_LTE);
           } else
             PUSH_TOKEN(LT_TOKEN_LT);
         } else if (*current == '"') {
           const char *start = ++current;
-          while (*current++ != '"')
-            if (*current == '\n') {
+          while (current < end && *current != '"') {
+            if (*current++ == '\n') {
               col = 0;
               line++;
             }
+          }
 
-          uint32_t length = (uint32_t)(current - start - 1);
+          if (current >= end)
+            _lt_tokenize_error(vm, t.module, line, col,
+                               "Unterminated string literal");
+
+          uint32_t length = (uint32_t)(current - start);
 
           lt_Literal newlit;
           newlit.type = LT_TOKEN_STRING_LITERAL;
@@ -465,13 +476,15 @@ lt_Tokenizer lt_tokenize(lt_VM *vm, const char *source, const char *mod_name) {
           tok.line = line;
           tok.col = col;
           col += length;
+          current++;
           tok.idx = t.literal_buffer.length - 1;
           lt_buffer_push(vm, &t.token_buffer, &tok);
         } else if (isdigit(*current)) {
           const char *start = current;
           uint8_t has_decimal = 0;
 
-          while ((isalnum(*current) && !isalpha(*current)) || *current == '.') {
+          while (current < end && ((isalnum(*current) && !isalpha(*current)) ||
+                                   *current == '.')) {
             if (*current == '.') {
               if (has_decimal)
                 _lt_tokenize_error(
@@ -484,12 +497,18 @@ lt_Tokenizer lt_tokenize(lt_VM *vm, const char *source, const char *mod_name) {
           }
 
           uint32_t length = (uint32_t)(current - start);
-          char *end = NULL;
-          double number = strtod(start, &end);
+          char *number_buf = vm->alloc(length + 1);
+          strncpy(number_buf, start, length);
+          number_buf[length] = 0;
 
-          if (end != current)
+          char *endptr = NULL;
+          double number = strtod(number_buf, &endptr);
+
+          if (endptr != number_buf + length)
             _lt_tokenize_error(vm, t.module, line, col,
                                "Failed to parse number!");
+
+          vm->free(number_buf);
 
           lt_Literal newlit;
           newlit.type = LT_TOKEN_NUMBER_LITERAL;
@@ -506,13 +525,8 @@ lt_Tokenizer lt_tokenize(lt_VM *vm, const char *source, const char *mod_name) {
           lt_buffer_push(vm, &t.token_buffer, &tok);
         } else if (isalpha(*current) || *current == '_') {
           const char *start = current;
-          uint8_t search = 1;
-          while (search) {
+          while (current < end && (isalnum(*current) || *current == '_'))
             current++;
-            if (!isalnum(*current) && *current != '_') {
-              search = 0;
-            }
-          }
 
           uint16_t length = (uint16_t)(current - start);
 
@@ -2420,8 +2434,9 @@ void lt_free_tokenizer(lt_VM *vm, lt_Tokenizer *tok) {
   lt_buffer_destroy(vm, &tok->literal_buffer);
 }
 
-lt_Value lt_loadstring(lt_VM *vm, const char *source, const char *mod_name) {
-  lt_Tokenizer tok = lt_tokenize(vm, source, mod_name);
+lt_Value lt_loadstring(lt_VM *vm, const char *source, uint32_t source_len,
+                       const char *mod_name) {
+  lt_Tokenizer tok = lt_tokenize(vm, source, source_len, mod_name);
   if (!tok.is_valid) {
     lt_free_tokenizer(vm, &tok);
     return LT_VALUE_NULL;
@@ -2442,8 +2457,9 @@ lt_Value lt_loadstring(lt_VM *vm, const char *source, const char *mod_name) {
   return c;
 }
 
-uint32_t lt_dostring(lt_VM *vm, const char *source, const char *mod_name) {
-  lt_Value callable = lt_loadstring(vm, source, mod_name);
+uint32_t lt_dostring(lt_VM *vm, const char *source, uint32_t source_len,
+                     const char *mod_name) {
+  lt_Value callable = lt_loadstring(vm, source, source_len, mod_name);
   return callable == LT_VALUE_NULL ? 0 : lt_exec(vm, callable, 0);
 }
 

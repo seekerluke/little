@@ -56,7 +56,7 @@ static uint8_t test_expect_error(lt_VM *vm, uint8_t argc) {
   had_error = false;
   error_msg.clear();
 
-  lt_loadstring(vm, source, "expect_error");
+  lt_loadstring(vm, source, (uint32_t)strlen(source), "expect_error");
 
   bool caught = had_error;
   had_error = prev;
@@ -112,7 +112,9 @@ int main(void) {
     error_msg.clear();
 
     std::cout << "Running test " << path.filename() << "..." << std::endl;
-    lt_dostring(vm, buf.str().c_str(), path.filename().string().c_str());
+    std::string source = buf.str();
+    std::string name = path.filename().string();
+    lt_dostring(vm, source.c_str(), (uint32_t)source.size(), name.c_str());
 
     if (had_error) {
       failed++;

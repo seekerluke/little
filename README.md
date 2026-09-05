@@ -44,7 +44,7 @@ int main(char** argv, int argc)
                    
     const char* my_source_code = ...                                         // read source from file/stream/string
 
-    uint16_t n_return = lt_dostring(vm, my_source_code, "my_module")         // run code as "my_module" 
+    uint16_t n_return = lt_dostring(vm, my_source_code, strlen(my_source_code), "my_module")         // run code as "my_module" 
     if(n_return) printf("LT RETURNED: %s", ltstd_tostring(vm, lt_pop(vm)));  // if our code returns, print the result
 }
 ```

@@ -119,10 +119,11 @@ static uint8_t _lt_require(lt_VM *vm, uint8_t argc) {
     lt_runtime_error(vm, "Failed to open file for require!");
 
   static char text[1 << 20];
-  fread(text, 1, sizeof(text), fp);
+  size_t text_len = fread(text, 1, sizeof(text), fp);
   fclose(fp);
 
-  uint32_t n_results = lt_dostring(vm, text, lt_get_string(vm, path));
+  uint32_t n_results =
+      lt_dostring(vm, text, (uint32_t)text_len, lt_get_string(vm, path));
   if (n_results == 1) {
     result = lt_pop(vm);
     lt_table_set(vm, reqtable, path, result);

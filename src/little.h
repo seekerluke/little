@@ -135,6 +135,7 @@ typedef struct {
   lt_Buffer identifier_buffer;
 
   const char *source;
+  uint32_t source_len;
   const char *module;
 
   uint8_t is_valid;
@@ -416,15 +417,18 @@ uint16_t lt_exec(lt_VM *vm, lt_Value callable, uint8_t argc);
 void lt_error(lt_VM *vm, const char *msg);
 void lt_runtime_error(lt_VM *vm, const char *message);
 
-lt_Tokenizer lt_tokenize(lt_VM *vm, const char *source, const char *mod_name);
+lt_Tokenizer lt_tokenize(lt_VM *vm, const char *source, uint32_t source_len,
+                         const char *mod_name);
 lt_Parser lt_parse(lt_VM *vm, lt_Tokenizer *tkn);
 lt_Value lt_compile(lt_VM *vm, lt_Parser *p);
 
 void lt_free_parser(lt_VM *vm, lt_Parser *p);
 void lt_free_tokenizer(lt_VM *vm, lt_Tokenizer *tok);
 
-lt_Value lt_loadstring(lt_VM *vm, const char *source, const char *mod_name);
-uint32_t lt_dostring(lt_VM *vm, const char *source, const char *mod_name);
+lt_Value lt_loadstring(lt_VM *vm, const char *source, uint32_t source_len,
+                       const char *mod_name);
+uint32_t lt_dostring(lt_VM *vm, const char *source, uint32_t source_len,
+                     const char *mod_name);
 
 lt_Value lt_make_number(double n);
 double lt_get_number(lt_Value v);

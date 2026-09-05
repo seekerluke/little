@@ -76,21 +76,21 @@ Sets the N'th upvalue in the current execution frame.
 ## Execution
 
 ```c
-lt_Value lt_loadstring(lt_VM* vm, const char* source, const char* mod_name);
+lt_Value lt_loadstring(lt_VM* vm, const char* source, uint32_t source_len, const char* mod_name);
 ```
-Tokenizes, parses, and compiles the source string, passing `mod_name` for debug purposes, and returns the resulting callable chunk.
+Tokenizes, parses, and compiles the first `source_len` bytes of `source`, passing `mod_name` for debug purposes, and returns the resulting callable chunk.
 
 ---
 ```c
-uint32_t lt_dostring(lt_VM* vm, const char* source, const char* mod_name);
+uint32_t lt_dostring(lt_VM* vm, const char* source, uint32_t source_len, const char* mod_name);
 ```
-Tokenizes, parses, and compiles the source string, passing `mod_name` for debug purposes. Then executes the resulting chunk, and returns the number of values returns onto the VM stack.
+Tokenizes, parses, and compiles the first `source_len` bytes of `source`, passing `mod_name` for debug purposes. Then executes the resulting chunk, and returns the number of values returns onto the VM stack.
 
 ---
 ```c
-lt_Tokenizer lt_tokenize(lt_VM* vm, const char* source, const char* mod_name);
+lt_Tokenizer lt_tokenize(lt_VM* vm, const char* source, uint32_t source_len, const char* mod_name);
 ```
-Tokenizes the passed source string, with `mod_name` for debug purposes, and returns the resulting tokenizer.
+Tokenizes the first `source_len` bytes of `source`, with `mod_name` for debug purposes, and returns the resulting tokenizer.
 
 ---
 ```c

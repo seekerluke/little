@@ -1,2 +1,2 @@
-var arr = [1, 2, 3]
-arr["thing"] = 0
+var thing = "this
+io.print(thing)
