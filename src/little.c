@@ -1143,6 +1143,7 @@ lt_Token *_lt_parse_expression(lt_VM *vm, lt_Parser *p, lt_Token *start,
       case LT_TOKEN_CLOSEBRACE:
       case LT_TOKEN_IDENTIFIER:
       case LT_TOKEN_CLOSEBRACKET:
+      case LT_TOKEN_ANY_LITERAL:
         is_call = 1;
       default:
         break;
@@ -1585,8 +1586,10 @@ void lt_error(lt_VM *vm, const char *msg) {
 }
 
 uint16_t _lt_exec(lt_VM *vm, lt_Value callable, uint8_t argc) {
-  if (!LT_IS_OBJECT(callable))
+  if (!LT_IS_OBJECT(callable)) {
+    lt_runtime_error(vm, "Attempting to call a value which is not callable");
     return 0;
+  }
 
   lt_Object *callee = LT_GET_OBJECT(callable);
 
@@ -1628,7 +1631,7 @@ uint16_t _lt_exec(lt_VM *vm, lt_Value callable, uint8_t argc) {
     return n_return;
   } break;
   default:
-    lt_runtime_error(vm, "Attempting to call an object which is not callable");
+    lt_runtime_error(vm, "Attempting to call a value which is not callable");
     break;
   }
 
