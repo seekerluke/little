@@ -1605,11 +1605,25 @@ void lt_setupval(lt_VM *vm, uint8_t idx, lt_Value val) {
 uint16_t _lt_exec(lt_VM *vm, lt_Value callable, uint8_t argc);
 
 uint16_t lt_exec(lt_VM *vm, lt_Value callable, uint8_t argc) {
+  uint16_t prev_depth = vm->depth;
+  lt_Value *prev_top = vm->top;
+
+  // if another chunk is executed while we're already in the middle of
+  // execution, keep a copy of the state it was in before modifying it.
+  // this can happen in tests using test.expect_error, or io.require in normal
+  // code. basically anything that runs lt_dostring in a native function.
+  jmp_buf prev_error_buf;
+  memcpy(prev_error_buf, vm->error_buf, sizeof(jmp_buf));
+
   if (!setjmp(*(jmp_buf *)vm->error_buf)) {
-    return _lt_exec(vm, callable, argc);
+    uint16_t result = _lt_exec(vm, callable, argc);
+    memcpy(vm->error_buf, prev_error_buf, sizeof(jmp_buf));
+    return result;
   } else {
-    vm->depth = 0;
-    vm->top = vm->stack;
+    memcpy(vm->error_buf, prev_error_buf, sizeof(jmp_buf));
+    vm->depth = prev_depth;
+    vm->top = prev_top;
+    vm->current = prev_depth > 0 ? &vm->callstack[prev_depth - 1] : NULL;
     return 0;
   }
 }

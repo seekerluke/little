@@ -48,15 +48,12 @@ static uint8_t test_expect_error(lt_VM *vm, uint8_t argc) {
   }
   const char *source = lt_get_string(vm, val);
 
-  // can only check for compile time errors right now
-  // lt_dostring will hang, so i can't validate runtime errors with this
-  // function
   bool prev = had_error;
   std::string prev_msg = error_msg;
   had_error = false;
   error_msg.clear();
 
-  lt_loadstring(vm, source, (uint32_t)strlen(source), "expect_error");
+  lt_dostring(vm, source, (uint32_t)strlen(source), "expect_error");
 
   bool caught = had_error;
   had_error = prev;

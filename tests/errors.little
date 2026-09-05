@@ -1,3 +1,4 @@
+; tokenize/parse errors
 test.expect_error("var 10")
 test.expect_error("var")
 test.expect_error("if")
@@ -9,3 +10,35 @@ test.expect_error("1 +")
 test.expect_error("1 * 2 -")
 test.expect_error("not")
 test.expect_error("1 and")
+
+; runtime errors, arithmetic on non-numbers
+test.expect_error("1 + null")
+test.expect_error("null - 1")
+test.expect_error("null * 2")
+test.expect_error("null / 2")
+test.expect_error("1 + true")
+
+; runtime errors, divide by zero
+test.expect_error("1 / 0")
+
+; runtime errors, comparison and negation on non-numbers
+test.expect_error("null > 1")
+test.expect_error("null < 1")
+test.expect_error("-null")
+
+; runtime errors, calling a non-callable
+test.expect_error("1()")
+test.expect_error("null()")
+
+; runtime errors, non-number array index
+test.expect_error("[1, 2][null]")
+test.expect_error("[1, 2][null] = 3")
+
+; runtime errors, stdlib argument type checks
+test.expect_error("math.sqrt(null)")
+test.expect_error("math.pow(1)")
+test.expect_error("array.len(5)")
+test.expect_error("array.push(1, 2)")
+test.expect_error("string.concat(1, 2)")
+test.expect_error("string.len(3)")
+test.expect_error("array.range(null)")
