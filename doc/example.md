@@ -3,6 +3,7 @@
 Here are some samples of how to extend the language through the C API. For brevity, these all assume you've already opened a `lt_VM*` by the name vm.
 
 ## Native function binding
+
 ```c
     uint8_t my_add(lt_VM* vm, uint8_t argc)
     {
