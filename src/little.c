@@ -1727,21 +1727,39 @@ inst_loop:
     PUSH(lt_table_get(vm, vm->global, POP()));
     NEXT;
 
-  case LT_OP_ADD:
-    TOP = (lt_make_number(VALTONUM(POP()) + VALTONUM(TOP)));
+  case LT_OP_ADD: {
+    lt_Value lhs = POP();
+    lt_Value rhs = POP();
+    if (!LT_IS_NUMBER(lhs) || !LT_IS_NUMBER(rhs))
+      lt_runtime_error(vm, "Attempting to add non-number values");
+    PUSH(lt_make_number(lt_get_number(lhs) + lt_get_number(rhs)));
     NEXT;
-  case LT_OP_SUB:
-    TOP = (lt_make_number(VALTONUM(POP()) - VALTONUM(TOP)));
+  }
+  case LT_OP_SUB: {
+    lt_Value lhs = POP();
+    lt_Value rhs = POP();
+    if (!LT_IS_NUMBER(lhs) || !LT_IS_NUMBER(rhs))
+      lt_runtime_error(vm, "Attempting to subtract non-number values");
+    PUSH(lt_make_number(lt_get_number(lhs) - lt_get_number(rhs)));
     NEXT;
-  case LT_OP_MUL:
-    TOP = (lt_make_number(VALTONUM(POP()) * VALTONUM(TOP)));
+  }
+  case LT_OP_MUL: {
+    lt_Value lhs = POP();
+    lt_Value rhs = POP();
+    if (!LT_IS_NUMBER(lhs) || !LT_IS_NUMBER(rhs))
+      lt_runtime_error(vm, "Attempting to multiply non-number values");
+    PUSH(lt_make_number(lt_get_number(lhs) * lt_get_number(rhs)));
     NEXT;
+  }
   case LT_OP_DIV: {
-    double lhs = VALTONUM(POP());
-    double rhs = VALTONUM(TOP);
-    if (rhs == 0)
+    lt_Value lhs = POP();
+    lt_Value rhs = POP();
+    if (!LT_IS_NUMBER(lhs) || !LT_IS_NUMBER(rhs))
+      lt_runtime_error(vm, "Attempting to divide non-number values");
+    double divisor = lt_get_number(rhs);
+    if (divisor == 0)
       lt_runtime_error(vm, "Divide by zero");
-    TOP = (lt_make_number(lhs / rhs));
+    PUSH(lt_make_number(lt_get_number(lhs) / divisor));
     NEXT;
   }
 
@@ -1752,15 +1770,29 @@ inst_loop:
     TOP = (lt_equals(vm, POP(), TOP) ? LT_VALUE_FALSE : LT_VALUE_TRUE);
     NEXT;
 
-  case LT_OP_GT:
-    TOP = (VALTONUM(POP()) > VALTONUM(TOP) ? LT_VALUE_TRUE : LT_VALUE_FALSE);
+  case LT_OP_GT: {
+    lt_Value lhs = POP();
+    lt_Value rhs = POP();
+    if (!LT_IS_NUMBER(lhs) || !LT_IS_NUMBER(rhs))
+      lt_runtime_error(vm, "Attempting to compare non-number values");
+    PUSH(lt_get_number(lhs) > lt_get_number(rhs) ? LT_VALUE_TRUE
+                                                 : LT_VALUE_FALSE);
     NEXT;
-  case LT_OP_GTE:
-    TOP = (VALTONUM(POP()) >= VALTONUM(TOP) ? LT_VALUE_TRUE : LT_VALUE_FALSE);
+  }
+  case LT_OP_GTE: {
+    lt_Value lhs = POP();
+    lt_Value rhs = POP();
+    if (!LT_IS_NUMBER(lhs) || !LT_IS_NUMBER(rhs))
+      lt_runtime_error(vm, "Attempting to compare non-number values");
+    PUSH(lt_get_number(lhs) >= lt_get_number(rhs) ? LT_VALUE_TRUE
+                                                  : LT_VALUE_FALSE);
     NEXT;
+  }
 
   case LT_OP_NEG:
-    TOP = (lt_make_number(VALTONUM(TOP) * -1.0));
+    if (!LT_IS_NUMBER(TOP))
+      lt_runtime_error(vm, "Attempting to negate a non-number value");
+    TOP = (lt_make_number(lt_get_number(TOP) * -1.0));
     NEXT;
 
   case LT_OP_AND: {
