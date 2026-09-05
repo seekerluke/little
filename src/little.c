@@ -1481,7 +1481,7 @@ void lt_sweep(lt_VM *vm, lt_Object *obj) {
     for (uint32_t i = 0; i < obj->u.closure.captures.length; ++i) {
       lt_sweep_v(vm, *(lt_Value *)lt_buffer_at(&obj->u.closure.captures, i));
     }
-  }
+  } break;
   case LT_OBJECT_FN: {
     for (uint32_t i = 0; i < obj->u.fn.constants.length; ++i) {
       lt_sweep_v(vm, *(lt_Value *)lt_buffer_at(&obj->u.fn.constants, i));
